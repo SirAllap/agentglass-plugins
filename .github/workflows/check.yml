@@ -1,0 +1,65 @@
+# The check a listing merges on, and the one to make required on `main`.
+#
+# A listing is a pull request that changes `plugins.json`, written by the
+# approval workflow and pushed with the catalogue App's token. This job
+# re-derives the entry from the pull request instead of trusting that run:
+# one entry added or replaced, pinned to a commit, and a fresh fetch of that
+# commit validates and hashes to what the entry says — see
+# scripts/catalogue-check.py for the whole list.
+#
+# It always runs and always reports, so it can be required: a pull request
+# that does not touch the catalogue passes with nothing to do, and one that
+# touches it AND anything else fails, because a listing is one entry.
+#
+# The script it runs is the BASE branch's, never the pull request's, and it
+# holds no secret while it fetches a stranger's commit.
+name: Check
+
+on:
+  pull_request:
+
+permissions: {}
+
+jobs:
+  catalogue:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: What the pull request touches
+        id: what
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.number }}
+        run: |
+          set -euo pipefail
+          files="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/$PR/files" --paginate --jq '.[].filename')"
+          if printf '%s\n' "$files" | grep -qx 'plugins.json'; then echo "catalogue=true" >> "$GITHUB_OUTPUT"; else echo "catalogue=false" >> "$GITHUB_OUTPUT"; fi
+          if [ "$files" = "plugins.json" ]; then echo "only=true" >> "$GITHUB_OUTPUT"; else echo "only=false" >> "$GITHUB_OUTPUT"; fi
+      - name: Nothing to check
+        if: steps.what.outputs.catalogue != 'true'
+        run: echo "this change does not touch plugins.json"
+      - name: A listing travels alone
+        if: steps.what.outputs.catalogue == 'true' && steps.what.outputs.only != 'true'
+        run: |
+          echo "::error::plugins.json changed together with other files; a listing is one entry in its own pull request"
+          exit 1
+      - uses: actions/checkout@v7
+        if: steps.what.outputs.only == 'true'
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+      - name: Fetch the app's validator
+        if: steps.what.outputs.only == 'true'
+        run: curl -fsSL https://raw.githubusercontent.com/SirAllap/agentglass/main/bin/agentglass-plugin -o /tmp/agentglass-plugin
+      - name: The entry is what its commit holds
+        if: steps.what.outputs.only == 'true'
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          AGENTGLASS_PLUGIN_CLI: /tmp/agentglass-plugin
+        run: |
+          set -euo pipefail
+          git fetch -q --depth 1 origin "$HEAD_SHA"
+          git show "$HEAD_SHA:plugins.json" > "$RUNNER_TEMP/head.json"
+          python3 scripts/catalogue-check.py plugins.json "$RUNNER_TEMP/head.json"

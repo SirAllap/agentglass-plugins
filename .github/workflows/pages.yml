@@ -1,0 +1,42 @@
+# Publishes plugins.json on this repository's Pages site, which is where the
+# app's market and the project's plugins page read it from. Pages answers with
+# `Access-Control-Allow-Origin: *`, so the landing page on the app's own site
+# can fetch it across origins.
+#
+# A bad merge here changes a list. It ships no binary and moves no tag: that
+# is the reason the catalogue lives in its own repository.
+name: Publish the catalogue
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: The file parses before it is published
+        run: python3 -c "import json;d=json.load(open('plugins.json'));assert isinstance(d.get('plugins'),list)"
+      - name: Assemble the site
+        run: mkdir -p site && cp plugins.json site/
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v5
