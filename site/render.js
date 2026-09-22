@@ -176,17 +176,38 @@ export function prose(doc, text, cls) {
   return box;
 }
 
-/** The plugin's mark, for an entry with no picture. */
+
+/* ── the landing's plugin parts (pl-*), drawn from an entry ───────
+   The class names are the landing's, so its CSS (landing.css) draws them. */
+
+/** The scope as the landing's tag and badge classes name its tone. */
+const tone = (e) => (SCOPE[e.scope].tone === "ok" ? "s" : "w");
+
+/**
+ * The picture for an entry with none: its manifest, in the landing's window,
+ * showing what the app shows before an install. Every value is the entry's
+ * checked text.
+ */
 function mark(doc, e) {
-  const m = el(doc, "div", "mark");
-  m.append(icon(doc, "piece", "mark-ic"));
-  const initials = el(doc, "span", "mark-id", e.id);
-  m.append(initials);
+  const m = el(doc, "div", "pl-manifest");
+  const bar = el(doc, "div", "wbar");
+  bar.append(el(doc, "s"), el(doc, "s"), el(doc, "s"), el(doc, "span", "seal-file", "plugin.json"));
+  const code = el(doc, "code");
+  const line = (k, v, cls = "v") => {
+    const l = el(doc, "span", "l");
+    l.append(el(doc, "span", "k", `"${k}"`), doc.createTextNode(": "), el(doc, "span", cls, v));
+    code.append(l);
+  };
+  line("id", `"${e.id}"`);
+  if (e.scope) line("scope", `"${e.scope}"`, "v " + tone(e));
+  if (e.draws.length) line("draws", "[" + e.draws.map((d) => `"${d}"`).join(", ") + "]");
+  line("ref", e.ref ? `"${shortRef(e)}…"` : "none");
+  m.append(bar, code);
   return m;
 }
 
 /** The picture at the pinned commit, or the mark when there is none. */
-export function shot(doc, e, cls, loading = "lazy") {
+export function shot(doc, e, cls = "pl-shot", loading = "lazy") {
   const box = el(doc, "div", cls);
   if (e.preview) {
     const img = doc.createElement("img");
@@ -201,18 +222,17 @@ export function shot(doc, e, cls, loading = "lazy") {
   return box;
 }
 
-export function verifiedBadge(doc) {
-  const b = el(doc, "span", "badge ok");
-  b.append(icon(doc, "check", "ic-s"), doc.createTextNode("Verified"));
-  b.title = "Written by the agentglass project";
-  return b;
-}
-
-export function pin(doc, e) {
-  const b = el(doc, "span", "pin");
-  b.append(icon(doc, "pin", "ic-s"), el(doc, "code", null, shortRef(e) || "unpinned"));
-  b.title = e.ref ? `Pinned to commit ${e.ref}` : "This entry names no commit";
-  return b;
+/** The "by" line: the publisher as the catalogue names it, and the badge
+    only for the literal `true`. */
+function byline(doc, e, cls) {
+  const by = el(doc, "p", cls);
+  by.append(doc.createTextNode(e.publisher ? `by ${e.publisher}` : "no publisher named"));
+  if (e.verified) {
+    const ok = el(doc, "span", "pl-ok", " · verified");
+    ok.title = "Written by the agentglass project";
+    by.append(ok);
+  }
+  return by;
 }
 
 /**
@@ -220,42 +240,58 @@ export function pin(doc, e) {
  * so a keyboard meets each plugin once and a screen reader reads its name.
  */
 export function card(doc, e, href) {
-  const c = el(doc, "article", "card");
+  const c = el(doc, "article", "pl-card");
   c.dataset.id = e.id;
-  c.append(shot(doc, e, "card-shot"));
-  const body = el(doc, "div", "card-body");
-  const h = el(doc, "h3", "card-title");
-  const a = el(doc, "a", "card-link", e.title);
+  c.append(shot(doc, e));
+  const top = el(doc, "div", "pl-top");
+  const ic = el(doc, "div", "pl-ic");
+  ic.append(icon(doc, "piece"));
+  const who = el(doc, "div");
+  const h = el(doc, "h3");
+  const a = el(doc, "a", "pl-name", e.title);
   a.href = href;
   h.append(a);
-  const by = el(doc, "p", "card-by");
-  by.append(doc.createTextNode(e.publisher ? `by ${e.publisher}` : "no publisher named"));
-  if (e.verified) by.append(verifiedBadge(doc));
-  const desc = el(doc, "p", "card-desc", e.description.replaceAll("`", ""));
-  const meta = el(doc, "dl", "card-meta");
-  const fact = (k, v) => { const d = el(doc, "div"); d.append(el(doc, "dt", null, k)); const dd = el(doc, "dd"); dd.append(v); d.append(dd); meta.append(d); };
-  if (e.scope) fact("Scope", el(doc, "span", "scope " + SCOPE[e.scope].tone, SCOPE[e.scope].label));
-  fact("Commit", pin(doc, e));
-  const lic = el(doc, "span", "lic", e.repo ? "…" : "unknown");
+  who.append(h, byline(doc, e, "pl-by"));
+  top.append(ic, who);
+  c.append(top, el(doc, "p", "pl-desc", e.description.replaceAll("`", "")));
+
+  const tags = el(doc, "div", "pl-tags");
+  if (e.scope) tags.append(el(doc, "span", "pl-tag " + tone(e), SCOPE[e.scope].label.toLowerCase()));
+  for (const d of e.draws.slice(0, 3)) tags.append(el(doc, "span", "pl-tag d", DRAWS[d][0].toLowerCase()));
+  if (e.draws.length > 3) tags.append(el(doc, "span", "pl-tag d", `+${e.draws.length - 3} more`));
+  if (tags.childNodes.length) c.append(tags);
+
+  /* Where the landing's card has its install box, the market shows what an
+     install gets: the commit and the start of the hash it must match. */
+  const inst = el(doc, "div", "pl-inst");
+  inst.append(icon(doc, e.ref ? "pin" : "eye", "ic-s"));
+  const code = el(doc, "code");
+  if (e.ref) {
+    code.append(el(doc, "b", null, shortRef(e)));
+    if (e.sha256) code.append(doc.createTextNode(`  sha256 ${e.sha256.slice(0, 12)}…`));
+    inst.title = `Pinned to commit ${e.ref}`;
+  } else code.textContent = "not pinned to a commit";
+  const lic = el(doc, "span", "lic", e.repo ? "…" : "");
   lic.dataset.licence = e.id;
-  fact("Licence", lic);
-  const foot = el(doc, "div", "card-foot");
+  inst.append(code, lic);
+  c.append(inst);
+
+  const links = el(doc, "div", "pl-links");
   if (e.repo) {
-    const src = outLink(doc, treeUrl(e), "Source at this commit", "card-src");
+    const src = outLink(doc, treeUrl(e), "Source at this commit");
     src.append(icon(doc, "out", "ic-s"));
-    foot.append(src);
+    links.append(src);
   }
-  if (e.added) foot.append(el(doc, "span", "card-added", `Listed ${e.added}`));
-  body.append(h, by, desc, meta, foot);
-  c.append(body);
+  if (e.added) links.append(el(doc, "span", null, `listed ${e.added}`));
+  if (links.childNodes.length) c.append(links);
   return c;
 }
 
 /** One row of the specification on a plugin's own page. */
-function fact(doc, dl, key, value, mono) {
-  const row = el(doc, "div", "fact");
+function fact(doc, dl, key, value) {
+  const row = el(doc, "div", "pl-fact");
   row.append(el(doc, "dt", null, key));
-  const dd = el(doc, "dd", mono ? "mono" : null);
+  const dd = el(doc, "dd");
   if (typeof value === "string") dd.textContent = value; else dd.append(value);
   row.append(dd);
   dl.append(row);
@@ -276,95 +312,135 @@ export function copyable(doc, value, label) {
 }
 
 /**
- * A plugin's own page: what it is, what it may do, what exactly is listed,
- * and how to install that exact thing from the app.
+ * A plugin's own page, in the landing's product-page parts: what it is, what
+ * it may do, exactly what is listed, and how to install that exact thing.
  */
 export function detail(doc, e) {
-  const root = el(doc, "article", "detail");
-  const crumb = el(doc, "a", "crumb");
-  crumb.href = "#/";
-  crumb.append(icon(doc, "back", "ic-s"), doc.createTextNode("All plugins"));
+  const root = el(doc, "article", "pl-one");
+  root.dataset.id = e.id;
+  const crumb = el(doc, "nav", "pl-crumb");
+  crumb.setAttribute("aria-label", "Breadcrumb");
+  const back = el(doc, "a", null, "Plugins");
+  back.href = "#/";
+  back.prepend(icon(doc, "back", "ic-s"));
+  crumb.append(back, el(doc, "span", null, "/"), el(doc, "span", null, e.title));
   root.append(crumb);
 
-  const head = el(doc, "header", "detail-head");
-  const h1 = el(doc, "h1", "detail-title", e.title);
-  h1.tabIndex = -1;
+  const hero = el(doc, "div", "pl-hero");
+  const pitch = el(doc, "div");
+  const top = el(doc, "div", "pl-one-top");
+  const ic = el(doc, "div", "pl-one-ic");
+  ic.append(icon(doc, "piece"));
+  const who = el(doc, "div");
+  const h1 = el(doc, "h1", null, e.title);
   h1.id = "detail-title";
-  const by = el(doc, "p", "detail-by");
-  by.append(doc.createTextNode(e.publisher ? `by ${e.publisher}` : "no publisher named"));
-  if (e.verified) by.append(verifiedBadge(doc));
-  head.append(h1, by);
-  const tags = el(doc, "ul", "detail-tags");
-  tags.setAttribute("aria-label", "Categories");
-  for (const c of e.categories) tags.append(el(doc, "li", null, c));
-  if (e.categories.length) head.append(tags);
-  root.append(head);
+  h1.tabIndex = -1;
+  const sub = byline(doc, e, "pl-one-sub");
+  sub.prepend(doc.createTextNode(`${e.id}  ·  `));
+  who.append(h1, sub);
+  top.append(ic, who);
+  pitch.append(top);
 
-  const grid = el(doc, "div", "detail-grid");
-  const main = el(doc, "div", "detail-main");
-  main.append(shot(doc, e, "detail-shot", "eager"));
-  main.append(prose(doc, e.description, "detail-desc"));
+  const badges = el(doc, "div", "pl-badges");
+  if (e.scope) badges.append(el(doc, "span", "pl-badge " + tone(e), SCOPE[e.scope].label.toLowerCase()));
+  if (e.draws.length) badges.append(el(doc, "span", "pl-badge", `${e.draws.length} ${e.draws.length === 1 ? "surface" : "surfaces"}`));
+  if (e.ref && e.sha256) badges.append(el(doc, "span", "pl-badge s", `pinned ${shortRef(e)}`));
+  if (e.verified) badges.append(el(doc, "span", "pl-badge s", "verified"));
+  if (badges.childNodes.length) pitch.append(badges);
+  pitch.append(prose(doc, e.description, "pl-lead"));
 
-  if (e.draws.length) {
-    const sec = el(doc, "section", "draws");
-    sec.append(el(doc, "h2", null, "Where it draws"));
-    const ul = el(doc, "ul");
-    for (const d of e.draws) {
-      const li = el(doc, "li");
-      li.append(el(doc, "b", null, DRAWS[d][0]), el(doc, "span", null, DRAWS[d][1]));
-      ul.append(li);
-    }
-    sec.append(ul);
-    main.append(sec);
+  const cta = el(doc, "div", "pl-cta");
+  const go = el(doc, "a", "pl-big", "Install from the app");
+  go.href = "#install";
+  cta.append(go);
+  if (e.repo) {
+    const src = outLink(doc, treeUrl(e), "Read the source at this commit", "pl-ghost");
+    src.append(icon(doc, "out", "ic-s"));
+    cta.append(src);
   }
-
-  const inst = el(doc, "section", "install");
-  inst.id = "install";
-  inst.append(el(doc, "h2", null, "Install it from the app"));
-  const ol = el(doc, "ol", "steps");
-  const step = (...nodes) => { const li = el(doc, "li"); li.append(...nodes); ol.append(li); };
-  step(el(doc, "b", null, "Open agentglass."), doc.createTextNode(" Go to Settings, then Plugins."));
-  const s2 = el(doc, "span");
-  s2.append(doc.createTextNode(" Search the market for "), el(doc, "q", null, e.title), doc.createTextNode(" and press Install."));
-  step(el(doc, "b", null, "Find it in the market."), s2);
-  step(el(doc, "b", null, "Read what it asks for."), doc.createTextNode(` The app shows its scope and where it draws. Nothing runs until you approve it and switch it on.`));
-  inst.append(ol);
-  const why = el(doc, "p", "install-why");
+  pitch.append(cta);
+  const hint = el(doc, "p", "pl-hint");
   if (e.ref && e.sha256) {
-    why.append(doc.createTextNode("The market installs commit "), el(doc, "code", null, shortRef(e)),
+    hint.append(doc.createTextNode("The market installs commit "), el(doc, "code", null, shortRef(e)),
       doc.createTextNode(" and refuses the install if its files hash to anything but "), el(doc, "code", null, e.sha256.slice(0, 12) + "…"),
       doc.createTextNode(". Installing from the repository URL instead gets whatever the repository holds today, not the commit listed here."));
   } else {
-    why.append(doc.createTextNode("This entry names no pinned commit, so the app has nothing to check the files against. Read the source before you install it."));
+    hint.append(doc.createTextNode("This entry names no pinned commit, so the app has nothing to check the files against. Read the source before you install it."));
   }
-  inst.append(why);
-  main.append(inst);
+  pitch.append(hint);
 
-  const side = el(doc, "aside", "detail-side");
-  side.setAttribute("aria-label", "What is listed");
-  const dl = el(doc, "dl", "spec");
-  if (e.scope) fact(doc, dl, "Scope", el(doc, "span", "scope " + SCOPE[e.scope].tone, SCOPE[e.scope].label));
+  const side = el(doc, "div");
+  const dl = el(doc, "dl", "pl-spec");
+  dl.setAttribute("aria-label", "What is listed");
   fact(doc, dl, "Publisher", e.publisher || "not named");
-  if (e.repo) fact(doc, dl, "Repository", outLink(doc, repoUrl(e), `${e.repo.owner}/${e.repo.name}`));
-  fact(doc, dl, "Commit", e.ref ? copyable(doc, e.ref, "commit") : "not pinned", true);
-  fact(doc, dl, "Content hash", e.sha256 ? copyable(doc, e.sha256, "content hash") : "none", true);
+  if (e.scope) fact(doc, dl, "Scope", SCOPE[e.scope].label.toLowerCase());
+  fact(doc, dl, "Draws", e.draws.length ? `${e.draws.length} ${e.draws.length === 1 ? "place" : "places"}` : "nowhere named");
+  if (e.repo) fact(doc, dl, "Source", outLink(doc, repoUrl(e), `${e.repo.owner}/${e.repo.name}`));
+  fact(doc, dl, "Commit", e.ref ? copyable(doc, e.ref, "commit") : "not pinned");
+  fact(doc, dl, "sha256", e.sha256 ? copyable(doc, e.sha256, "content hash") : "none");
   const lic = fact(doc, dl, "Licence", e.repo ? "…" : "unknown");
   lic.dataset.licence = e.id;
-  if (e.added) fact(doc, dl, "Listed", e.added, true);
+  if (e.added) fact(doc, dl, "Listed", e.added);
+  if (e.categories.length) fact(doc, dl, "Tags", e.categories.join(", "));
   side.append(dl);
-  if (e.repo) {
-    const src = outLink(doc, treeUrl(e), "Read the source at this commit", "btn primary");
-    src.append(icon(doc, "out", "ic-s"));
-    side.append(src);
-  }
-  const note = el(doc, "div", "note small");
-  note.append(icon(doc, "eye", "ic-s"));
-  const np = el(doc, "p");
-  np.append(el(doc, "b", null, "Listing is not auditing."), doc.createTextNode(" This plugin passed the checks a machine can run. It still runs as a process on your machine. Read the code."));
-  note.append(np);
-  side.append(note);
+  hero.append(pitch, side);
+  root.append(hero);
 
-  grid.append(main, side);
-  root.append(grid);
+  if (e.preview) {
+    const stage = el(doc, "button", "pl-stage");
+    stage.type = "button";
+    stage.dataset.zoom = e.preview;
+    stage.setAttribute("aria-label", `Enlarge the screenshot of ${e.title}`);
+    const img = doc.createElement("img");
+    img.src = e.preview;
+    img.alt = `${e.title}, running in agentglass`;
+    img.decoding = "async";
+    img.referrerPolicy = "no-referrer";
+    img.addEventListener("error", () => stage.remove(), { once: true });
+    const zoom = el(doc, "span", "pl-zoom", "Click to enlarge");
+    zoom.prepend(icon(doc, "zoom", "ic-s"));
+    stage.append(img, zoom);
+    root.append(stage);
+  }
+
+  const close = el(doc, "div", "pl-close");
+  if (e.draws.length) {
+    const sec = el(doc, "section", "pl-sec");
+    sec.append(el(doc, "h2", "pl-sec-h", "Where it draws"));
+    const ul = el(doc, "ul", "pl-draws");
+    e.draws.forEach((d, i) => {
+      const li = el(doc, "li");
+      const body = el(doc, "div");
+      body.append(el(doc, "b", null, DRAWS[d][0]), el(doc, "span", null, DRAWS[d][1]));
+      li.append(el(doc, "span", "n", String(i + 1)), body);
+      ul.append(li);
+    });
+    sec.append(ul);
+    close.append(sec);
+  }
+  const note = el(doc, "aside", "pl-sec pl-aside");
+  note.append(el(doc, "h2", "pl-sec-h", "Listing is not auditing"));
+  note.append(el(doc, "p", "pl-hint", "The repository is public, its manifest is one agentglass accepts, and it has a README and a licence. A check read its source for a short list of patterns and never ran it. That is what a machine can tell. It still runs as a process on your machine, and it still asks you to approve its scope. Read the code."));
+  close.append(note);
+  root.append(close);
+
+  const inst = el(doc, "section", "pl-sec install");
+  inst.id = "install";
+  inst.append(el(doc, "h2", "pl-sec-h", "Install it from the app"));
+  const steps = el(doc, "div", "steps");
+  const step = (title, ...rest) => {
+    const box = el(doc, "div");
+    const inner = el(doc, "div");
+    const text = el(doc, "span");
+    text.append(...rest);
+    inner.append(el(doc, "b", null, title), text);
+    box.append(inner);
+    steps.append(box);
+  };
+  step("Open agentglass.", doc.createTextNode("Go to Settings, then Plugins."));
+  step("Find it in the market.", doc.createTextNode("Search the market for "), el(doc, "q", null, e.title), doc.createTextNode(" and press Install."));
+  step("Read what it asks for.", doc.createTextNode("The app shows its scope and where it draws. Nothing runs until you approve it and switch it on."));
+  inst.append(steps);
+  root.append(inst);
   return root;
 }

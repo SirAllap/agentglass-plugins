@@ -1,326 +1,341 @@
-/* agentglass plugins — the landing page's world, with a light twin.
-   Dark is the landing's own palette; light is the same violet on a pale
-   violet paper. The system picks until the visitor presses the switch. */
+/*
+ * What the market adds to the landing's design system (landing.css).
+ *
+ * landing.css is the landing's own CSS, copied verbatim. This file holds only
+ * what the landing does not have, built from the same tokens: the few tokens
+ * its rules use but never declare, the accessibility floor, the header held
+ * formed, and the market's own parts (the orbit in the hero, the seal, the
+ * shelf's cards, the entry, the plugin page's copy buttons and lightbox).
+ * Dark only, as the landing is.
+ */
 
+/* ── tokens ───────────────────────────────────────────────────── */
 :root{
- --bg:#07060d;--bg2:#0c0a16;--card:#100e1c;--txt:#f2f1f8;--dim:#a9a6c0;--dim2:#8581a0;
- --vio:#a78bfa;--vio-strong:#7350ef;--vio-hover:#8567f2;--on-vio:#0b0914;
- --ok:#34d399;--warn:#fbbf24;
- --line:rgba(167,139,250,.14);--line2:rgba(167,139,250,.3);--field:#6a5aa6;
- --tint:rgba(167,139,250,.07);--tint2:rgba(167,139,250,.13);
- --sh-sm:none;
- --sh-md:0 24px 50px -36px rgba(0,0,0,.9);
- --sh-lg:0 30px 70px -40px rgba(0,0,0,.95);
- --glow:0 14px 34px -18px rgba(124,92,245,.9);
- --seal-glow:0 18px 50px -28px rgba(52,211,153,.7);
- --orb:rgba(124,92,245,.28);
- --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
- --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
- --ease:cubic-bezier(.16,1,.3,1);
- color-scheme:dark;
-}
-@media (prefers-color-scheme:light){
- :root:not([data-theme="dark"]){
-  --bg:#f6f5fb;--bg2:#efedf8;--card:#ffffff;--txt:#17141f;--dim:#4f4b66;--dim2:#625e7c;
-  --vio:#6246d8;--vio-strong:#5537cf;--vio-hover:#4a2ec0;--on-vio:#ffffff;
-  --ok:#047857;--warn:#a44d06;
-  --line:rgba(98,70,216,.14);--line2:rgba(98,70,216,.3);--field:#8a78d0;
-  --tint:rgba(98,70,216,.05);--tint2:rgba(98,70,216,.1);
-  --sh-sm:0 2px 3px -1px rgba(0,0,0,.1),0 1px 0 0 rgba(25,28,33,.02),0 0 0 1px rgba(25,28,33,.08);
-  --sh-md:0 0 0 1px rgba(0,0,0,.06),0 1px 1px -.5px rgba(0,0,0,.06),0 3px 3px -1.5px rgba(0,0,0,.06),0 6px 6px -3px rgba(0,0,0,.06),0 12px 12px -6px rgba(0,0,0,.06),0 24px 24px -12px rgba(0,0,0,.06);
-  --sh-lg:0 2.8px 2.2px rgba(0,0,0,.034),0 6.7px 5.3px rgba(0,0,0,.048),0 12.5px 10px rgba(0,0,0,.06),0 22.3px 17.9px rgba(0,0,0,.072),0 41.8px 33.4px rgba(0,0,0,.086),0 100px 80px rgba(0,0,0,.12);
-  --glow:none;--seal-glow:none;
-  --orb:rgba(124,92,245,.16);
-  color-scheme:light;
- }
-}
-:root[data-theme="light"]{
- --bg:#f6f5fb;--bg2:#efedf8;--card:#ffffff;--txt:#17141f;--dim:#4f4b66;--dim2:#625e7c;
- --vio:#6246d8;--vio-strong:#5537cf;--vio-hover:#4a2ec0;--on-vio:#ffffff;
- --ok:#047857;--warn:#a44d06;
- --line:rgba(98,70,216,.14);--line2:rgba(98,70,216,.3);--field:#8a78d0;
- --tint:rgba(98,70,216,.05);--tint2:rgba(98,70,216,.1);
- --sh-sm:0 2px 3px -1px rgba(0,0,0,.1),0 1px 0 0 rgba(25,28,33,.02),0 0 0 1px rgba(25,28,33,.08);
- --sh-md:0 0 0 1px rgba(0,0,0,.06),0 1px 1px -.5px rgba(0,0,0,.06),0 3px 3px -1.5px rgba(0,0,0,.06),0 6px 6px -3px rgba(0,0,0,.06),0 12px 12px -6px rgba(0,0,0,.06),0 24px 24px -12px rgba(0,0,0,.06);
- --sh-lg:0 2.8px 2.2px rgba(0,0,0,.034),0 6.7px 5.3px rgba(0,0,0,.048),0 12.5px 10px rgba(0,0,0,.06),0 22.3px 17.9px rgba(0,0,0,.072),0 41.8px 33.4px rgba(0,0,0,.086),0 100px 80px rgba(0,0,0,.12);
- --glow:none;--seal-glow:none;
- --orb:rgba(124,92,245,.16);
- color-scheme:light;
+ /* Named by landing rules (.pl-act, .pl-go, .pl-fact, the footer mark) but
+    never declared there. */
+ --fg:var(--txt);--bg:var(--void);--success:var(--run);
+ /* The landing's curves, named once. */
+ --out:cubic-bezier(.16,1,.3,1);
+ --lift:cubic-bezier(.2,.7,.3,1);
+ /* The one token changed: the landing's --dim2 (#57546e) is 2.8:1 on the
+    void, and here it carries text (counts, labels, footnotes). #7a7794 is the
+    same grey-violet at 4.7:1, the WCAG AA floor for small text. */
+ --dim2:#7a7794;
+ --card-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 24px 60px -34px rgba(0,0,0,.9);
+ --card-shadow-up:0 1px 0 rgba(255,255,255,.05) inset,0 34px 80px -34px rgba(0,0,0,.95),0 0 0 1px rgba(167,139,250,.08);
+ --glow:rgba(167,139,250,.16);
 }
 
-*,*::before,*::after{box-sizing:border-box}
-*{margin:0;padding:0}
-html{scroll-behavior:smooth;overflow-x:clip;-webkit-text-size-adjust:100%}
-body{background:var(--bg);color:var(--txt);font:16.5px/1.6 var(--sans);-webkit-font-smoothing:antialiased;
- min-height:100vh;display:flex;flex-direction:column}
-main{flex:1}
-a{color:inherit;text-decoration:none}
-code,kbd,pre{font-family:var(--mono)}
-img{max-width:100%;display:block}
-button,input,select{font:inherit;color:inherit}
-::selection{background:var(--vio);color:var(--on-vio)}
-:focus-visible{outline:2px solid var(--vio);outline-offset:3px;border-radius:6px}
-input{caret-color:var(--vio)}
-html{scrollbar-color:var(--line2) transparent}
-[hidden]{display:none!important}
+/* ── the header, formed ───────────────────────────────────────────
+   On the landing the lockup arrives large and docks as the page scrolls.
+   Here it is already home: these are the landing's own rules for its inner
+   pages (body:not([data-route="home"])), held for every view. The mark keeps
+   its orbit, the caret its blink, the rule its sweep. */
+.hd-bar,.hd-nav{opacity:1;animation:none}
+.hd-bar{height:calc(62px + var(--safe))}
+.hd-lock{transform:none;animation:none}
+.hd-ring,.hd-halo{display:none}
+.hd-rule{animation:none;transform:scaleX(1)}
+.hd-sweep{opacity:1;top:calc(61px + var(--safe));
+ animation:sweep 7s cubic-bezier(.55,0,.45,1) infinite;animation-timeline:auto;animation-range:normal}
+.hd-nav a.here{color:var(--txt)}
+
+/* ── page furniture ───────────────────────────────────────────── */
 .sprite{position:absolute;width:0;height:0;overflow:hidden}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-.ic{width:18px;height:18px;flex:none}
-.ic-s{width:14px;height:14px;flex:none}
-.w{max-width:1120px;margin:0 auto;padding:0 28px}
-@media(max-width:600px){.w{padding:0 16px}}
-
-.skip{position:absolute;left:16px;top:-60px;z-index:50;padding:10px 16px;border-radius:10px;
- background:var(--vio);color:var(--on-vio);font-weight:600}
+.ic-s{width:14px;height:14px;display:inline-block;flex:none;vertical-align:-2px}
+.skip{position:absolute;left:16px;top:-60px;z-index:95;padding:10px 16px;border-radius:10px;
+ font:13px var(--mono);background:var(--vio);color:var(--void)}
 .skip:focus{top:12px}
+main{display:block}
+code{font-family:var(--mono)}
+::selection{background:rgba(167,139,250,.32)}
+/* The landing positions its sections only inside its scroll scene; the
+   market has no scene, and the orbs need a box to sit in. */
+.sec{position:relative}
+.sec>.w{position:relative;z-index:1}
 
-/* ── the bar ───────────────────────────────────────────────── */
-.bar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 86%,transparent);
- backdrop-filter:saturate(1.4) blur(12px);-webkit-backdrop-filter:saturate(1.4) blur(12px);border-bottom:1px solid var(--line)}
-.bar-in{display:flex;align-items:center;gap:20px;height:62px}
-.brand{display:flex;align-items:center;gap:10px;font-weight:650;letter-spacing:-.01em}
-.brand-mark{width:26px;height:26px;color:var(--vio)}
-.brand-dot{fill:var(--ok)}
-.brand-name{font-size:16.5px}
-.brand-sub{font-size:12.5px;color:var(--dim);border:1px solid var(--line2);border-radius:999px;padding:2px 9px}
-.nav{margin-left:auto;display:flex;align-items:center;gap:6px}
-.nav a{padding:8px 12px;border-radius:9px;font-size:14.5px;color:var(--dim);transition:color .15s,background .15s}
-.nav a:hover{color:var(--txt);background:var(--tint)}
-.nav-raw{font-family:var(--mono);font-size:13px!important}
-.theme{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;border:1px solid var(--field);
- background:transparent;color:var(--dim);cursor:pointer;transition:color .15s,border-color .15s}
-.theme:hover{color:var(--txt);border-color:var(--vio)}
-.theme .moon{display:none}
-.theme[data-next="dark"] .sun{display:none}
-.theme[data-next="dark"] .moon{display:block}
-@media(max-width:600px){.nav-raw,.brand-sub{display:none}.nav a{padding:8px 9px}.bar-in{gap:10px}}
-@media(max-width:360px){.nav a[href="#browse"]{display:none}}
-
-/* ── buttons ───────────────────────────────────────────────── */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:11px;
- border:1px solid var(--field);background:transparent;color:var(--txt);font-size:15px;font-weight:550;cursor:pointer;box-shadow:var(--sh-sm);
- transition:border-color .15s,background .15s,transform 160ms cubic-bezier(.23,1,.32,1)}
-.btn:hover{border-color:var(--vio);background:var(--tint)}
-.btn.primary{background:var(--vio-strong);border-color:var(--vio-strong);color:#fff;box-shadow:var(--glow)}
-.btn.primary:hover{background:var(--vio-hover);border-color:var(--vio-hover)}
-.btn:active,.chip:active,.copy:active,.theme:active{transform:scale(.97)}
-
-/* ── hero ──────────────────────────────────────────────────── */
-.hero{position:relative;overflow:clip;padding:88px 0 76px}
-.hero::before{content:"";position:absolute;width:880px;height:880px;right:-260px;top:-420px;border-radius:50%;
- background:radial-gradient(circle,var(--orb),transparent 62%);pointer-events:none}
-.hero-in{position:relative;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:56px;align-items:center}
-.hero h1{font-size:clamp(34px,5.2vw,58px);line-height:1.04;font-weight:700;letter-spacing:-.035em;text-wrap:balance;max-width:15ch}
-.lede{margin-top:22px;font-size:18px;line-height:1.6;color:var(--dim);max-width:56ch;text-wrap:pretty}
-.hero-acts{margin-top:30px;display:flex;flex-wrap:wrap;gap:12px}
-.hero-facts{margin-top:22px;font-size:15px;color:var(--dim2);font-variant-numeric:tabular-nums}
-
-/* The seal: one listing, written the way the catalogue writes it. */
-.seal{position:relative;border:1px solid var(--line2);border-radius:18px;padding:22px 22px 18px;background:var(--card);
- box-shadow:var(--sh-lg);transition:border-color .6s var(--ease),box-shadow .6s var(--ease)}
-.seal::after{content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;
- box-shadow:0 0 0 0 rgba(52,211,153,0);transition:box-shadow .9s var(--ease)}
-.seal.sealed{border-color:color-mix(in srgb,var(--ok) 45%,var(--line2))}
-.seal.sealed::after{box-shadow:var(--seal-glow)}
-.seal-cap{font-size:13px;color:var(--dim2)}
-.seal-title{display:inline-block;margin-top:6px;font-size:21px;font-weight:650;letter-spacing:-.015em}
+/* ── the hero: the pass, the sentence, the seal ───────────────── */
+.one{isolation:isolate;overflow-x:clip;justify-content:flex-start;gap:0;padding-top:calc(88px + var(--safe));padding-bottom:8px}
+/* Rhythm: the landing's 104px between sections, and its last section's
+   shorter foot (#get: 104px 72px), so the page ends on the footer, not on
+   a band of nothing. */
+#browse{padding-top:88px}
+#list-yours{padding-bottom:72px}
+.foot2{margin-top:0}
+/* The pass: the mark's own drawing at the size of a hero. The world, its
+   steep orbit, the live contact, and one satellite for each listed plugin,
+   passing behind the world and in front of it. */
+.pass{position:relative;width:min(400px,84vw);aspect-ratio:1;margin-bottom:6px}
+.pass::before{content:"";position:absolute;inset:-18%;z-index:-1;border-radius:50%;pointer-events:none;
+ background:radial-gradient(closest-side,rgba(167,139,250,.24),rgba(124,92,245,.08) 55%,transparent 100%);
+ animation:breathe 9s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:.75;transform:scale(.97)}50%{opacity:1;transform:scale(1.03)}}
+.pass svg{display:block;width:100%;height:100%;overflow:visible;transform:translate3d(var(--px,0),var(--py,0),0)}
+.pass .sat-p{color:#c4b5fd}
+.pass .far{color:#8b88a4}
+.pass .star{fill:#f2f1f8;animation:twinkle 4.6s ease-in-out infinite}
+.pass .star:nth-of-type(2n){animation-duration:6.1s;animation-delay:-2s}
+.pass .star:nth-of-type(3n){animation-duration:3.7s;animation-delay:-1.1s}
+@keyframes twinkle{0%,100%{opacity:.15}50%{opacity:.7}}
+.one .kick{margin-top:4px}
+.one .oneline{margin:22px auto 0}
+/* The claim on its own line, as the landing sets it on a phone. */
+.one .oneline b{display:block;margin-top:.04em}
+.one .cta{margin-top:30px}
+.ctap{text-decoration:none}
+.ctap .cmd b{font-weight:400}
+.ctad{margin-top:14px}
+.seal{width:min(660px,100%);margin-top:64px;text-align:left}
+.seal-file{margin-left:8px;font:10.5px var(--mono);color:var(--dim2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seal-body{padding:18px 22px 16px}
+.seal-title{display:inline-block;font-size:19px;font-weight:650;letter-spacing:-.01em;color:var(--txt)}
 .seal-title:hover{color:var(--vio)}
-.seal-rows{margin-top:16px;border-top:1px solid var(--line)}
-.seal-rows div{display:grid;grid-template-columns:78px minmax(0,1fr);gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
-.seal-rows dt{font:12px var(--mono);color:var(--dim2);padding-top:1px}
-.seal-rows dd{font:12.5px/1.55 var(--mono);color:var(--txt);word-break:break-all;font-variant-numeric:tabular-nums}
-.seal-rows .sha{color:var(--vio)}
-.seal.sealed .sha{color:var(--ok);transition:color .6s}
-.seal-foot{margin-top:14px;display:flex;gap:8px;align-items:flex-start;font-size:13.5px;color:var(--dim)}
-.seal-foot .ic-s{margin-top:4px;color:var(--ok)}
-@media(max-width:900px){.hero{padding:56px 0 48px}.hero-in{grid-template-columns:minmax(0,1fr);gap:40px}.hero h1{max-width:18ch}}
-@media(max-width:600px){.lede{font-size:16.5px}
- .seal-rows div{grid-template-columns:minmax(0,1fr);gap:2px}}
+.seal-rows{margin-top:12px;border-top:1px solid var(--line)}
+.seal-rows>div{display:grid;grid-template-columns:96px minmax(0,1fr);gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}
+.seal-rows dt{font:10.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim2);padding-top:2px}
+.seal-rows dd{margin:0;font:12.5px/1.6 var(--mono);color:var(--txt);overflow-wrap:anywhere}
+.seal .sha{color:var(--run);transition:text-shadow .6s var(--out)}
+.seal.sealed .sha{text-shadow:0 0 18px rgba(52,211,153,.35)}
+.seal-foot{display:flex;gap:9px;align-items:flex-start;margin-top:12px;font:12px/1.6 var(--mono);color:var(--dim)}
+.seal-foot .ic-s{color:var(--run);margin-top:2px}
+.hero-facts{margin-top:16px;font:12px var(--mono);color:var(--dim2);text-align:center;min-height:1.6em}
 
-/* ── browse ────────────────────────────────────────────────── */
-.browse{padding:48px 0 40px;scroll-margin-top:62px}
-.browse-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap}
-h2{font-size:clamp(25px,3.2vw,34px);line-height:1.15;font-weight:650;letter-spacing:-.02em;text-wrap:balance}
-.count{font-size:14px;color:var(--dim2);font-variant-numeric:tabular-nums}
-.tools{margin-top:22px;display:flex;flex-wrap:wrap;gap:10px}
-.search{flex:1 1 340px;display:flex;align-items:center;gap:10px;height:48px;padding:0 14px;border-radius:12px;
- background:var(--card);border:1px solid var(--field);color:var(--dim2);box-shadow:var(--sh-sm);transition:border-color .15s}
-.search:focus-within{border-color:var(--vio)}
-.search:has(input:focus-visible){outline:2px solid var(--vio);outline-offset:2px}
-.search input{flex:1;min-width:0;height:100%;background:none;border:0;outline:0;color:var(--txt);font-size:15.5px}
-.search input::placeholder{color:var(--dim2);opacity:1}
-.search input::-webkit-search-cancel-button{filter:grayscale(1)}
-.search kbd{font-size:12px;color:var(--dim);border:1px solid var(--line2);border-radius:6px;padding:1px 7px}
-.pick select{height:48px;padding:0 38px 0 14px;border-radius:12px;background-color:var(--card);border:1px solid var(--field);box-shadow:var(--sh-sm);color:var(--txt);
- font-size:14.5px;cursor:pointer;appearance:none;
- background-image:linear-gradient(45deg,transparent 50%,var(--dim) 50%),linear-gradient(135deg,var(--dim) 50%,transparent 50%);
- background-position:calc(100% - 20px) 21px,calc(100% - 15px) 21px;background-size:5px 5px;background-repeat:no-repeat}
-.pick select:hover{border-color:var(--vio)}
-@media(max-width:600px){.pick{flex:1 1 40%}.pick select{width:100%}.search kbd{display:none}}
-.chips{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
-.chip{display:inline-flex;align-items:center;gap:7px;min-height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--field);
- background:transparent;color:var(--dim);font-size:14px;cursor:pointer;transition:color .15s,border-color .15s,background .15s,transform 160ms cubic-bezier(.23,1,.32,1)}
-.chip:hover{color:var(--txt);border-color:var(--vio)}
-.chip[aria-pressed="true"]{background:var(--vio-strong);border-color:var(--vio-strong);color:#fff}
-.chip-n{font-size:12px;color:var(--dim2);font-variant-numeric:tabular-nums}
-.chip[aria-pressed="true"] .chip-n{color:inherit}
-.chip.more{border-style:dashed}
+/* ── the catalogue ────────────────────────────────────────────── */
+.sec .sub code{font:13px var(--mono);color:var(--vio)}
+.pl-tools{margin-top:8px}
+.pl-pick{display:contents}
+.pl-sort{cursor:pointer}
+.pl-q .ic{color:var(--dim2)}
+.pl-q input::-webkit-search-cancel-button{filter:grayscale(1)}
+.pl-chip{transition:color .15s,border-color .15s,background .15s,transform .16s var(--out)}
+.pl-chip:active{transform:scale(.96)}
+.pl-chip.more{border-style:dashed}
+.pl-shelf,.pl-grid{position:relative}
 
-.note{margin-top:24px;display:flex;gap:14px;align-items:flex-start;padding:16px 18px;border-radius:14px;
- border:1px solid color-mix(in srgb,var(--warn) 38%,transparent);background:color-mix(in srgb,var(--warn) 7%,transparent)}
-.note .ic,.note .ic-s{color:var(--warn);margin-top:3px}
-.note p{font-size:15px;color:var(--dim);max-width:92ch}
-.note b{color:var(--txt);font-weight:650}
-.note.small{margin-top:16px;padding:14px 15px;gap:10px}
-.note.small p{font-size:14px}
+/* The card: the landing's, with the whole card one link, a light that
+   follows the pointer, and a lift that the shadow answers. Its tint sits on
+   a solid ground, so an orb or the satellite passing behind stays behind. */
+.pl-card{position:relative;box-shadow:var(--card-shadow);
+ background:linear-gradient(180deg,rgba(167,139,250,.07),rgba(167,139,250,.02)),#0a0912;
+ transition:border-color .2s,transform .35s var(--lift),box-shadow .35s var(--lift)}
+.pl-card.pre{opacity:0}
+.pl-card::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;opacity:0;
+ background:radial-gradient(420px circle at var(--mx,50%) var(--my,0%),var(--glow),transparent 60%);
+ transition:opacity .3s}
+.pl-card>*{position:relative;z-index:1}
+.pl-card .pl-shot{isolation:isolate}
+.pl-card .pl-shot img{transition:transform .7s var(--out)}
+.pl-card .pl-shot::after{content:"";position:absolute;inset:0;pointer-events:none;
+ background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.14) 48%,transparent 62%);
+ transform:translateX(-120%);transition:transform .9s var(--out)}
+.pl-name::after{content:"";position:absolute;inset:0;border-radius:16px;z-index:2}
+.pl-card:has(.pl-name:focus-visible){outline:2px solid var(--vio);outline-offset:3px}
+.pl-name:focus-visible{outline:none}
+.pl-card .pl-links a{position:relative;z-index:3}
+@media (hover:hover) and (pointer:fine){
+ .pl-card:hover{transform:translateY(-4px);box-shadow:var(--card-shadow-up);border-color:var(--line2)}
+ .pl-card:hover::before{opacity:1}
+ .pl-card:hover .pl-shot img{transform:scale(1.035)}
+ .pl-card:hover .pl-shot::after{transform:translateX(120%)}
+ .pl-card:hover .pl-name{color:var(--vio)}
+}
+.pl-card:active{transform:translateY(-2px) scale(.99)}
+.pl-card h3{margin:0;font:inherit}
+/* The landing lets the description grow to fill a tall card, which shows a
+   fifth, cut line under the four it clamps to. The box stays four lines; the
+   install row keeps the card's foot. */
+.pl-card .pl-desc{flex:none}
+/* No screenshot: the manifest, a small window leaning in the frame, that
+   straightens when the card is picked up. */
+.pl-manifest{position:absolute;left:11%;right:11%;top:16%;border:1px solid var(--line2);border-radius:10px;overflow:hidden;
+ background:rgba(11,10,19,.92);box-shadow:0 30px 60px -30px #000;transform:rotate(-2.2deg) translateY(3%);
+ transition:transform .7s var(--out)}
+.pl-manifest .wbar{padding:5px 10px}
+.pl-manifest .wbar s{width:7px;height:7px}
+.pl-manifest code{display:block;padding:12px 14px 14px;font:11.5px/1.75 var(--mono);color:var(--dim)}
+.pl-manifest .l{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-manifest .k{color:var(--vio)}
+.pl-manifest .v{color:var(--txt)}
+.pl-manifest .v.s{color:var(--run)}
+.pl-manifest .v.w{color:var(--wait)}
+@media (hover:hover) and (pointer:fine){.pl-card:hover .pl-manifest{transform:none}}
+.pl-ic .ic{width:20px;height:20px}
+.pl-inst{gap:10px;padding:9px 12px}
+.pl-inst .ic-s{color:var(--run)}
+.pl-inst code{color:var(--dim)}
+.pl-inst code b{font-weight:400;color:var(--txt)}
+.pl-inst .lic{flex:none;font:11px var(--mono);color:var(--dim)}
+.pl-links{flex-wrap:wrap;align-items:center}
+.pl-links a{display:inline-flex;align-items:center;gap:5px}
+.pl-links .ic-s{width:12px;height:12px}
 
-.grid{margin-top:22px;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(340px,100%),1fr));gap:20px}
-.card{position:relative;display:flex;flex-direction:column;min-width:0;border-radius:18px;overflow:hidden;
- background:var(--card);border:1px solid var(--line2);box-shadow:var(--sh-md);transition:border-color .2s}
-@media (hover:hover) and (pointer:fine){.card:hover{border-color:var(--vio)}}
-.card:focus-within{border-color:var(--vio)}
-.card.ghost{min-height:380px;overflow:hidden}
-.card.ghost::before{content:"";display:block;aspect-ratio:16/9;background:var(--tint2)}
-.card.ghost::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,var(--tint2) 50%,transparent 70%);
- transform:translateX(-100%);animation:shimmer 1.2s linear infinite}
-@keyframes shimmer{to{transform:translateX(100%)}}
-.card-shot{aspect-ratio:16/9;background:linear-gradient(140deg,var(--tint2),var(--tint));border-bottom:1px solid var(--line);overflow:hidden}
-.card-shot img,.detail-shot img{width:100%;height:100%;object-fit:cover;object-position:top center}
-.mark{height:100%;display:grid;place-content:center;justify-items:center;gap:10px;color:var(--vio)}
-.mark-ic{width:46px;height:46px;opacity:.75}
-.mark-id{font:12.5px var(--mono);color:var(--dim2);max-width:30ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.card-body{flex:1;display:flex;flex-direction:column;gap:10px;padding:18px 20px 18px}
-.card-title{font-size:19px;line-height:1.25;font-weight:650;letter-spacing:-.012em;overflow-wrap:anywhere}
-.card-link::after{content:"";position:absolute;inset:0;border-radius:18px}
-.card-link:focus-visible{outline:none}
-.card-link:focus-visible::after{outline:2px solid var(--vio);outline-offset:-2px}
-@media (hover:hover) and (pointer:fine){.card:hover .card-title{color:var(--vio)}}
-.card-by,.detail-by{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:14px;color:var(--dim);overflow-wrap:anywhere}
-.badge{display:inline-flex;align-items:center;gap:5px;font:12px var(--mono);padding:2px 9px 2px 7px;border-radius:999px}
-.badge.ok{color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,transparent);border:1px solid color-mix(in srgb,var(--ok) 35%,transparent)}
-.card-desc{font-size:14.5px;line-height:1.6;color:var(--dim);overflow-wrap:anywhere;
- display:-webkit-box;-webkit-line-clamp:4;line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
-.card-meta{margin-top:auto;display:grid;grid-template-columns:repeat(3,auto);justify-content:start;gap:4px 22px;padding-top:12px;border-top:1px solid var(--line)}
-.card-meta dt{font-size:12px;color:var(--dim2)}
-.card-meta dd{font-size:13.5px;color:var(--txt)}
-.pin{display:inline-flex;align-items:center;gap:5px;color:var(--vio)}
-.pin code{font-size:13px}
-.scope.ok{color:var(--ok)}
-.scope.warn{color:var(--warn)}
-.lic{font-size:13.5px}
-.card-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-size:13.5px}
-.card-src{position:relative;z-index:1;display:inline-flex;align-items:center;gap:5px;color:var(--dim);
- border-bottom:1px solid var(--line2);padding:6px 0 2px}
-.card-src:hover{color:var(--txt);border-color:var(--vio)}
-.card-added{font-size:13px;color:var(--dim2);font-variant-numeric:tabular-nums}
-@media(max-width:400px){.card-meta{grid-template-columns:repeat(2,auto)}}
+/* No hole in the grid: a card left alone on the last row (one match, or an
+   odd count) takes the whole row, its picture beside its text. */
+@media(min-width:900px){
+ .pl-grid>.pl-card:last-child:nth-child(odd):not(.ghost){grid-column:1/-1;display:grid;
+  grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);column-gap:28px;row-gap:12px;align-content:start}
+ .pl-grid>.pl-card:last-child:nth-child(odd):not(.ghost)>*{grid-column:2}
+ .pl-grid>.pl-card:last-child:nth-child(odd):not(.ghost)>.pl-shot{grid-column:1;grid-row:1/span 8;
+  margin:-20px 0 -20px -20px;border-radius:16px 0 0 16px;aspect-ratio:auto;min-height:340px}
+}
 
-.empty{margin-top:22px;padding:36px 24px;border:1px dashed var(--line2);border-radius:18px;text-align:center;display:grid;gap:16px;justify-items:center}
-.empty p{color:var(--dim);overflow-wrap:anywhere}
-.empty.error{border-color:color-mix(in srgb,var(--warn) 45%,transparent)}
+/* A skeleton in the grid's shape while the catalogue loads. */
+.pl-card.ghost{min-height:420px;pointer-events:none}
+.pl-card.ghost i{display:block;height:12px;border-radius:6px;background:var(--line);width:60%}
+.pl-card.ghost i+i{width:90%}
+.pl-card.ghost i+i+i{width:40%}
+.pl-card.ghost .pl-shot{overflow:hidden}
+.pl-card.ghost .pl-shot::after{content:"";position:absolute;inset:0;
+ background:linear-gradient(100deg,transparent 30%,rgba(167,139,250,.14) 50%,transparent 70%);
+ animation:shimmer 1.4s linear infinite}
+@keyframes shimmer{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.pl-none p{margin:0 0 14px}
+.pl-none.err{border-color:rgba(251,191,36,.45);color:var(--txt)}
 
-/* ── list yours ────────────────────────────────────────────── */
-.list{padding:84px 0 96px;margin-top:40px;background:var(--bg2);border-top:1px solid var(--line);scroll-margin-top:62px}
-.list-in{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:56px;align-items:start}
-.sub{margin-top:14px;color:var(--dim);font-size:16.5px;max-width:58ch;text-wrap:pretty}
-.flow{margin-top:28px;list-style:none;counter-reset:step;display:grid;gap:4px}
-.flow li{counter-increment:step;position:relative;padding:12px 0 12px 46px;color:var(--dim);font-size:15.5px}
-.flow li::before{content:counter(step);position:absolute;left:0;top:11px;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
- font:13px var(--mono);color:var(--vio);background:var(--tint2);border:1px solid var(--line2)}
-.flow li:not(:last-child)::after{content:"";position:absolute;left:15px;top:45px;bottom:-9px;width:1px;background:var(--line2)}
-.flow b{color:var(--txt);font-weight:650}
-code{font-size:.9em;padding:1px 5px;border-radius:5px;background:var(--tint2);color:var(--txt);overflow-wrap:anywhere}
-.list-acts{margin-top:28px;display:flex;flex-wrap:wrap;gap:12px}
-.entry{border:1px solid var(--line2);border-radius:18px;background:var(--card);box-shadow:var(--sh-md);overflow:hidden}
-.entry figcaption{padding:14px 20px;border-bottom:1px solid var(--line);font-size:14px;font-weight:600}
-.entry figcaption span{font-weight:400;color:var(--dim2);margin-left:6px}
-.entry pre{padding:18px 20px;overflow-x:auto;font-size:13px;line-height:1.7;color:var(--dim);border-bottom:1px solid var(--line)}
-.entry pre:focus-visible{outline-offset:-2px}
-.entry pre code{background:none;padding:0;color:inherit;overflow-wrap:normal}
-.entry mark{background:var(--tint2);color:var(--vio);border-radius:4px;padding:1px 3px}
-.promise{padding:8px 20px}
-.promise div{display:grid;grid-template-columns:130px minmax(0,1fr);gap:14px;padding:12px 0}
-.promise div+div{border-top:1px solid var(--line)}
-.promise dt{display:flex;align-items:center;gap:7px;color:var(--vio);align-self:start}
-.promise dt code{background:none;padding:0;color:var(--txt)}
-.promise dd{font-size:14.5px;color:var(--dim)}
-.entry-foot{padding:14px 20px 18px;font-size:14px;color:var(--dim);border-top:1px solid var(--line);background:var(--tint)}
-@media(max-width:900px){.list-in{grid-template-columns:minmax(0,1fr);gap:40px}}
-@media(max-width:600px){.list{padding:60px 0 64px}.promise div{grid-template-columns:minmax(0,1fr);gap:4px}.entry pre{font-size:12px}}
+.audit{display:flex;gap:14px;align-items:flex-start;margin-top:26px}
+.audit>.ic{flex:none;width:20px;height:20px;color:var(--vio);margin-top:2px}
+.audit h3{margin:0 0 6px;font-size:15px;color:var(--txt)}
 
-/* ── a plugin's own page ───────────────────────────────────── */
-#view{padding:36px 0 80px}
-.detail,.missing{max-width:1120px;margin:0 auto;padding:0 28px;animation:rise .2s cubic-bezier(.23,1,.32,1) both}
-@media(max-width:600px){.detail,.missing{padding:0 16px}}
-@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-@keyframes fade{from{opacity:0}}
-.crumb{display:inline-flex;align-items:center;gap:7px;min-height:40px;font-size:14.5px;color:var(--dim)}
-.crumb:hover{color:var(--vio)}
-.detail-head{margin-top:14px}
-.detail-title{font-size:clamp(32px,5vw,50px);line-height:1.06;font-weight:700;letter-spacing:-.03em;overflow-wrap:anywhere}
-.detail-title:focus{outline:none}
-.detail-by{margin-top:10px;font-size:15px}
-.detail-tags{margin-top:16px;list-style:none;display:flex;flex-wrap:wrap;gap:7px}
-.detail-tags li{font-size:13px;color:var(--dim);border:1px solid var(--line2);border-radius:999px;padding:3px 11px}
-.detail-grid{margin-top:32px;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:40px;align-items:start}
-.detail-shot{aspect-ratio:16/9;border-radius:18px;overflow:hidden;border:1px solid var(--line2);background:linear-gradient(140deg,var(--tint2),var(--tint));box-shadow:var(--sh-lg)}
-.detail-shot img{object-fit:contain;background:var(--bg2)}
-.detail-desc{margin-top:28px;display:grid;gap:14px;max-width:70ch}
-.detail-desc p{font-size:17px;line-height:1.7;color:var(--txt);text-wrap:pretty;overflow-wrap:anywhere}
-.draws,.install{margin-top:44px}
-.draws h2,.install h2{font-size:22px}
-.draws ul{margin-top:16px;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
-.draws li{padding:15px 17px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
-.draws b{display:block;font-weight:600;font-size:15px}
-.draws span{display:block;margin-top:4px;font-size:14px;color:var(--dim)}
-.steps{margin-top:16px;list-style:none;counter-reset:step;display:grid;gap:10px;max-width:70ch}
-.steps li{counter-increment:step;position:relative;padding:14px 16px 14px 56px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--dim);font-size:15.5px}
-.steps li::before{content:counter(step);position:absolute;left:16px;top:13px;width:28px;height:28px;border-radius:8px;display:grid;place-items:center;
- font:13px var(--mono);color:var(--vio);background:var(--tint2)}
-.steps b{color:var(--txt);font-weight:650}
-.steps q{color:var(--txt)}
-.install-why{margin-top:14px;font-size:14.5px;color:var(--dim);max-width:70ch}
-.detail-side{position:sticky;top:86px;display:grid;gap:14px}
-.spec{border:1px solid var(--line2);border-radius:16px;background:var(--card);padding:4px 0;box-shadow:var(--sh-md)}
-.fact{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;padding:12px 16px}
-.fact+.fact{border-top:1px solid var(--line)}
-.fact dt{font-size:12.5px;color:var(--dim2)}
-.fact dd{font-size:14.5px;overflow-wrap:anywhere}
-.fact dd.mono{font-family:var(--mono);font-size:13px}
-.fact a{color:var(--vio);border-bottom:1px solid var(--line2)}
-.fact a:hover{border-color:var(--vio)}
-.copyable{display:flex;align-items:flex-start;gap:8px}
-.copyable code{flex:1;min-width:0;background:none;padding:0;word-break:break-all;font-size:12.5px;line-height:1.6}
-.copy{flex:none;display:grid;place-items:center;width:32px;height:32px;margin:-6px -6px 0 0;border-radius:8px;border:1px solid var(--field);
- background:transparent;color:var(--dim);cursor:pointer;transition:color .15s,border-color .15s,transform 160ms cubic-bezier(.23,1,.32,1)}
+/* ── list yours ───────────────────────────────────────────────── */
+.list-grid{margin-top:34px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:22px;align-items:start}
+.list-grid .steps{margin-top:0}
+/* The steps run as tall as the column beside them: the last one takes the
+   rest, so the two columns end together. */
+@media(min-width:861px){
+ .list-grid{align-items:stretch}
+ .list-grid .steps>div:last-child{flex:1}
+}
+.steps>div>div>b{display:block;font-size:15px;font-weight:600;color:var(--txt);margin-bottom:5px}
+.steps>div>div>span{display:block;color:var(--dim);font-size:14px;line-height:1.6}
+.steps code{overflow-wrap:anywhere}
+/* A window, but not the hero's: it is there from the start, not scaled in. */
+.win.entry{width:100%;margin:0;opacity:1;transform:none}
+/* Each line is its own block, so the newlines between them in the markup
+   must not print: whitespace collapses in the <pre>, and each line keeps its
+   own indentation. */
+.entry pre{margin:0;padding:16px 0;overflow-x:auto;font:12px/1.75 var(--mono);color:var(--dim);white-space:normal}
+.entry code{display:block;min-width:max-content}
+.entry .l{display:block;white-space:pre;padding:0 18px;border-left:2px solid transparent;
+ transition:background .5s var(--out),border-color .5s var(--out),color .5s var(--out)}
+.entry .l.k{color:var(--txt)}
+.entry .l.lit{background:rgba(167,139,250,.1);border-left-color:var(--vio);color:var(--txt)}
+.entry .l.lit[data-k="sha"]{background:rgba(52,211,153,.09);border-left-color:var(--run)}
+.entry-foot{display:flex;gap:9px;align-items:center;padding:12px 18px;border-top:1px solid var(--line);
+ font:12px var(--mono);color:var(--dim)}
+.entry-foot .ic-s{color:var(--run)}
+/* The window and the three promises share the column beside the steps, so
+   neither column ends early. */
+.list-side{display:grid;gap:16px;min-width:0}
+.list-side .facts{margin-top:0;grid-template-columns:1fr}
+.promise span{display:block}
+.promise b{display:flex;align-items:center;gap:8px}
+.promise b .ic-s{color:var(--vio)}
+.promise b code{font:600 13px var(--mono);color:var(--txt)}
+.promise span code{font:11px var(--mono);color:var(--vio)}
+.pick{margin-top:18px}
+.pick .grab{display:inline-block}
+.pick .grab:active{transform:translateY(0) scale(.97)}
+@media(max-width:860px){.list-grid{grid-template-columns:minmax(0,1fr)}}
+
+/* ── a plugin's own page ──────────────────────────────────────── */
+.page{min-height:80vh;position:relative;z-index:1;padding-bottom:72px}
+/* The landing's generic .page rules (a, p, li) outrank the pl-* parts they
+   hold, which is why its own plugin page shows a violet-on-violet button,
+   footnotes at body size and a stray bullet. Put the parts back. */
+.page .pl-big{color:var(--void)}
+.page .pl-big:hover{color:var(--void)}
+.page .pl-hint{margin-top:14px;font-size:12px;line-height:1.7;color:var(--dim2)}
+.page .pl-aside .pl-hint{margin-top:0}
+.page .pl-one-sub{margin-top:6px;font-size:12.5px;line-height:1.6}
+.page .pl-lead p{margin-top:0;font-size:16.5px;line-height:1.65;color:var(--txt)}
+.page .pl-lead p+p{margin-top:12px}
+.pl-draws li:before{content:none}
+/* .pl-one h2 is the landing's title rule; these h2 are section heads. */
+.pl-one .pl-sec-h{margin:0 0 12px;font-size:18px;font-weight:650;line-height:1.3;letter-spacing:-.01em;color:var(--txt)}
+.pl-one .pl-aside .pl-sec-h{font-size:15px}
+/* The note beside "Where it draws" runs the full height of the list. */
+.pl-close{align-items:stretch}
+.pl-one h1{margin:0;font-size:clamp(26px,4.4vw,38px);line-height:1.08;letter-spacing:-.025em;font-weight:650;color:var(--txt)}
+.pl-one h1:focus{outline:none}
+.pl-crumb{display:flex;align-items:center;gap:8px}
+.pl-crumb a{display:inline-flex;align-items:center;gap:6px}
+.pl-one-ic .ic{width:30px;height:30px}
+.pl-lead p+p{margin-top:12px}
+.pl-lead code,.pl-hint code{font:.9em var(--mono);color:var(--vio);background:rgba(167,139,250,.09);border-radius:4px;padding:1px 5px}
+.pl-big,.pl-ghost{text-decoration:none;transition:filter .15s,transform .16s var(--out),border-color .15s,color .15s}
+.pl-big:active,.pl-ghost:active{transform:scale(.97)}
+.pl-hint b{color:var(--txt);font-weight:600}
+.pl-spec dd{display:flex;justify-content:flex-end;min-width:0}
+.pl-fact dd code{overflow-wrap:anywhere}
+.copyable{display:inline-flex;align-items:center;gap:8px;min-width:0;max-width:100%}
+.copyable code{min-width:0;overflow-wrap:anywhere;text-align:right}
+.copy{flex:none;position:relative;display:grid;place-items:center;width:30px;height:30px;padding:0;
+ color:var(--dim);background:transparent;border:1px solid var(--line2);border-radius:8px;cursor:pointer;
+ transition:color .15s,border-color .15s,transform .16s var(--out)}
 .copy:hover{color:var(--txt);border-color:var(--vio)}
-.copy.done{color:var(--ok);border-color:var(--ok)}
-.detail-side .btn{width:100%}
-.missing{padding-top:40px;display:grid;gap:14px;justify-items:start}
-.missing p{color:var(--dim)}
-@media(max-width:940px){.detail-grid{grid-template-columns:minmax(0,1fr)}.detail-side{position:static}}
+.copy:active{transform:scale(.94)}
+.copy .ic-ok{display:none;color:var(--run)}
+.copy.done{border-color:rgba(52,211,153,.5)}
+.copy.done .ic-copy{display:none}
+.copy.done .ic-ok{display:block;animation:pop .5s var(--pop)}
+@keyframes pop{from{transform:scale(.6)}to{transform:none}}
+.pl-stage{display:block;width:100%;font:inherit;color:inherit;text-align:left;cursor:zoom-in}
+.pl-stage:focus-visible{outline:2px solid var(--vio);outline-offset:4px}
+.pl-zoom .ic-s{width:13px;height:13px}
+.pl-draws li{list-style:none}
+.pl-sec.install{margin-top:36px}
+.pl-sec.install .steps{margin-top:14px}
+.pl-missing{padding:40px 0}
+.pl-missing p{margin-top:12px;color:var(--dim)}
+.pl-missing .pl-ghost{margin-top:22px}
+/* The lightbox is a dialog: a scrim, the picture, one way out. */
+.pl-lb:focus{outline:none}
+.pl-lb-x:focus-visible{outline:2px solid var(--vio);outline-offset:2px}
 
-/* ── footer ────────────────────────────────────────────────── */
-.foot{border-top:1px solid var(--line);padding:28px 0 36px;font-size:14px;color:var(--dim2)}
-.foot-in{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between}
-.foot a{color:var(--dim);border-bottom:1px solid var(--line2)}
-.foot a:hover{color:var(--txt)}
-.foot-links{display:flex;gap:20px;flex-wrap:wrap}
+/* ── the view transitions between the shelf and a plugin's page ── */
+::view-transition-old(root),::view-transition-new(root){animation-duration:.28s;animation-timing-function:var(--out)}
+::view-transition-group(vt-shot),::view-transition-group(vt-title){animation-duration:.42s;animation-timing-function:var(--out)}
 
-/* Reduced motion keeps what a change means and drops the movement: colour
-   and opacity still change, nothing slides, lifts or presses. */
+/* ── phones ───────────────────────────────────────────────────── */
+@media(max-width:759px){
+ .one{padding-top:calc(76px + var(--safe));padding-left:16px;padding-right:16px}
+ .pass{width:min(300px,78vw)}
+ .seal{margin-top:48px}
+ .seal-body{padding:16px}
+ .seal-rows>div{grid-template-columns:1fr;gap:2px}
+ .sec{padding-inline:16px}
+ .page{padding-inline:16px}
+ .pl-hero{padding:22px}
+ .pl-card{padding:16px}
+ .pl-shot{margin:-16px -16px 4px}
+ .pl-fact{flex-direction:column;align-items:flex-start;gap:4px}
+ .pl-fact dd{text-align:left;justify-content:flex-start}
+ .copyable code{text-align:left}
+ .foot2{padding-inline:16px}
+}
+/* Touch: every target at least 44px. */
+@media (pointer:coarse){
+ .pl-chip,.pl-more,.pl-ghost,.pl-big,.copy,.pl-sort{min-height:44px}
+ .copy{min-width:44px}
+ .pl-chip{padding-inline:14px}
+ .pl-links a{padding-block:10px}
+}
+
+/* ── the visitor's settings ───────────────────────────────────── */
 @media (prefers-reduced-motion:reduce){
  html{scroll-behavior:auto}
- .card.ghost::after{animation:none;transform:none;opacity:.5}
- .detail,.missing{animation:fade .2s ease-out both}
- .btn:active,.chip:active,.copy:active,.theme:active{transform:none}
+ .hd-sweep{display:none}
+ .pass::before{animation:none}
+ .pl-card.ghost .pl-shot::after{display:none}
+ /* The sentence stays still, its gradient drawn once rather than swept. */
+ .oneline b{-webkit-text-fill-color:transparent}
+ ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
 }
-/* A person who asked for less transparency, or more contrast, gets a solid
-   bar and field-strength edges everywhere. */
-@media (prefers-reduced-transparency:reduce){.bar{background:var(--bg);backdrop-filter:none;-webkit-backdrop-filter:none}}
-@media (prefers-contrast:more){:root{--line:var(--field);--line2:var(--field)}}
-/* Fingers need room: 44px targets where the pointer is coarse. */
-@media (pointer:coarse){.chip{min-height:44px}.theme,.copy{width:44px;height:44px}.copy{margin:-10px -10px 0 0}.card-src{padding:12px 0 8px}}
-.copy .ic-ok{display:none}
-.copy.done .ic-copy{display:none}
-.copy.done .ic-ok{display:block}
+@media (prefers-reduced-transparency:reduce){
+ .hd-bar{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--void)}
+ .pl-zoom,.pl-lb,.pl-lb-x{backdrop-filter:none}
+}
+@media (prefers-contrast:more){
+ :root{--line:rgba(167,139,250,.4);--line2:rgba(167,139,250,.7);--dim:#b9b6cf}
+}

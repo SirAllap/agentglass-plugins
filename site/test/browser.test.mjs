@@ -69,7 +69,7 @@ test("nothing in a hostile catalogue runs in a browser", { skip: !chrome && "no 
     }
     const first = await dump(pages[1]);
     assert.match(first, /&lt;\/p&gt;&lt;script&gt;fetch\('\/beacon\?description'\)&lt;\/script&gt;/, "the description payload is on its page as text");
-    assert.match(first, /class="detail"/, "the plugin's own page opened");
+    assert.match(first, /class="pl-one"/, "the plugin's own page opened");
     assert.deepEqual(beacons, [], "no payload reached the server");
   } finally {
     server.close();

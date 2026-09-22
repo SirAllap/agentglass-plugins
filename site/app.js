@@ -6,40 +6,11 @@
  * hash is an ordinary anchor into the shelf page.
  */
 import { readEntry, card, detail, el, licenceName, rawUrl, blobUrl, SCOPE } from "./render.js";
+import { calm, flip, reveal, spotlight, satellites } from "./motion.js";
 
 const $ = (s) => document.querySelector(s);
-const calm = matchMedia("(prefers-reduced-motion: reduce)");
 
 const state = { all: [], q: "", cat: "", scope: "", sort: "added", showAllCats: false };
-
-/* ── theme ──────────────────────────────────────────────────────
-   The system decides until the visitor presses the switch; then their pick is
-   kept in this browser only. theme.js applied it before first paint. */
-function themeNow() {
-  const set = document.documentElement.dataset.theme;
-  if (set === "light" || set === "dark") return set;
-  return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-}
-function paintThemeButton() {
-  const b = $("#theme");
-  const next = themeNow() === "dark" ? "light" : "dark";
-  b.setAttribute("aria-label", `Switch to the ${next} theme`);
-  b.title = `Switch to the ${next} theme`;
-  b.dataset.next = next;
-}
-$("#theme").addEventListener("click", () => {
-  const next = themeNow() === "dark" ? "light" : "dark";
-  const apply = () => {
-    document.documentElement.dataset.theme = next;
-    for (const m of document.querySelectorAll('meta[name="theme-color"]')) { m.media = ""; m.content = next === "dark" ? "#07060d" : "#f6f5fb"; }
-  };
-  /* A cross-fade rather than the whole page changing brightness at once. */
-  if (document.startViewTransition && !calm.matches) document.startViewTransition(apply); else apply();
-  try { localStorage.setItem("theme", next); } catch { /* private window: this visit only */ }
-  paintThemeButton();
-});
-matchMedia("(prefers-color-scheme: dark)").addEventListener("change", paintThemeButton);
-paintThemeButton();
 
 /* ── licences ───────────────────────────────────────────────────
    Not in the catalogue: read from LICENSE at the pinned commit, once per
@@ -61,8 +32,8 @@ function fillLicences(scope, entries) {
     if (!e) continue;
     licenceOf(e).then((name) => {
       node.textContent = "";
-      if (!name) { node.textContent = "see repository"; return; }
       if (node.tagName === "DD") {
+        if (!name) { node.textContent = "see the repository"; return; }
         const a = el(document, "a", null, name);
         a.href = blobUrl(e, "LICENSE");
         a.rel = "noopener noreferrer";
@@ -99,17 +70,17 @@ function renderChips() {
   const shown = state.showAllCats ? cats : cats.slice(0, LIMIT);
   if (state.cat && !shown.some(([c]) => c === state.cat)) shown.push([state.cat, counts.get(state.cat) || 0]);
   const chip = (value, label, n) => {
-    const b = el(document, "button", "chip", label);
+    const b = el(document, "button", "pl-chip", label);
     b.type = "button";
     b.dataset.cat = value;
     b.setAttribute("aria-pressed", String(state.cat === value));
-    if (n != null) b.append(el(document, "span", "chip-n", String(n)));
+    if (n != null) b.append(el(document, "span", "pl-chip-n", String(n)));
     box.append(b);
   };
   chip("", "All", state.all.length);
   for (const [c, n] of shown) chip(c, c, n);
   if (cats.length > LIMIT) {
-    const more = el(document, "button", "chip more", state.showAllCats ? "Fewer" : `${cats.length - LIMIT} more`);
+    const more = el(document, "button", "pl-chip more", state.showAllCats ? "Fewer" : `${cats.length - LIMIT} more`);
     more.type = "button";
     more.dataset.more = "1";
     more.setAttribute("aria-expanded", String(state.showAllCats));
@@ -120,10 +91,13 @@ function renderChips() {
 /* Each card is built once and moved, not rebuilt, as the filters change: a
    keystroke must not reload every preview. */
 const cards = new Map();
-function renderShelf() {
+function renderShelf({ animate = false } = {}) {
   const grid = $("#grid");
   const hits = sorted(state.all.filter(matches));
-  grid.replaceChildren(...hits.map((e) => cards.get(e.id)));
+  /* A filter picked from a chip or a menu moves the cards to their new places;
+     typing does not animate, it only has to be instant. */
+  const update = () => grid.replaceChildren(...hits.map((e) => cards.get(e.id)));
+  if (animate) flip(grid, update); else update();
   const n = hits.length;
   const total = state.all.length;
   $("#count").textContent = n === total ? `${total} ${total === 1 ? "plugin" : "plugins"}` : `${n} of ${total} plugins`;
@@ -166,67 +140,127 @@ function renderSeal() {
      and a moment nobody sees is not a moment. */
   if (!("IntersectionObserver" in window)) { setTimeout(tick, 380); return; }
   new IntersectionObserver(([x], o) => {
-    if (x.isIntersecting) { o.disconnect(); setTimeout(tick, 200); }
+    if (x.isIntersecting) { o.disconnect(); setTimeout(tick, 500); }
   }, { threshold: 0.6 }).observe(seal);
+}
+
+/* ── the lightbox: the picture at actual size, one way out ───────── */
+function lightbox(src, alt, opener) {
+  const box = el(document, "div", "pl-lb");
+  box.setAttribute("role", "dialog");
+  box.setAttribute("aria-modal", "true");
+  box.setAttribute("aria-label", alt);
+  const img = el(document, "img");
+  img.src = src;
+  img.alt = alt;
+  img.referrerPolicy = "no-referrer";
+  const cap = el(document, "div", "pl-lb-cap", "Click the image for actual size  ·  Esc to close");
+  const x = el(document, "button", "pl-lb-x", "×");
+  x.type = "button";
+  x.setAttribute("aria-label", "Close");
+  const root = document.documentElement;
+  const was = root.style.overflow;
+  const close = () => {
+    box.remove();
+    root.style.overflow = was;
+    removeEventListener("keydown", keys, true);
+    opener.focus({ preventScroll: true });
+  };
+  const keys = (ev) => {
+    if (ev.key === "Escape") { ev.preventDefault(); close(); }
+    else if (ev.key === "Tab") { ev.preventDefault(); x.focus(); }
+  };
+  img.addEventListener("click", (ev) => {
+    ev.stopPropagation();
+    const full = box.classList.toggle("full");
+    cap.textContent = full ? "Click again to fit  ·  Esc to close" : "Click the image for actual size  ·  Esc to close";
+  });
+  box.addEventListener("click", close);
+  x.addEventListener("click", close);
+  addEventListener("keydown", keys, true);
+  box.append(img, cap, x);
+  root.style.overflow = "hidden";
+  document.body.append(box);
+  x.focus({ preventScroll: true });
 }
 
 /* ── routing ──────────────────────────────────────────────────── */
 let lastCard = "";
 let wantSearch = false;
-function route() {
-  const m = location.hash.match(/^#\/plugin\/(.+)$/);
+const cardOf = (id) => [...document.querySelectorAll("#grid .pl-card")].find((c) => c.dataset.id === id);
+
+/* The picture and the name travel between a card and its page: the same two
+   elements, named for the length of one view transition. */
+function name(node, n) { if (node) node.style.viewTransitionName = n; }
+function unname() { for (const n of document.querySelectorAll("[data-vt]")) { n.style.viewTransitionName = ""; delete n.dataset.vt; } }
+function tag(node, n) { if (node) { name(node, n); node.dataset.vt = "1"; } }
+function withTransition(update, before, animate) {
+  if (!animate || !document.startViewTransition || calm.matches) { update(); return; }
+  unname();
+  if (before) before();
+  const t = document.startViewTransition(update);
+  t.finished.finally(unname);
+}
+
+function showPlugin(id) {
   const home = $("#home");
   const view = $("#view");
-  if (m) {
-    let id = "";
-    try { id = decodeURIComponent(m[1]); } catch { /* a malformed hash is no plugin */ }
-    const e = state.all.find((x) => x.id === id);
-    view.textContent = "";
-    if (e) {
-      view.append(detail(document, e));
-      fillLicences(view, [e]);
-      document.title = `${e.title} · agentglass plugins`;
-    } else {
-      const box = el(document, "div", "missing");
-      box.append(el(document, "h1", null, "No such plugin"), el(document, "p", null, state.all.length ? "It is not in the catalogue, or it was taken out." : "The catalogue did not load."));
-      const back = el(document, "a", "btn", "All plugins");
-      back.href = "#/";
-      box.append(back);
-      view.append(box);
-      document.title = "Not found · agentglass plugins";
-    }
-    home.hidden = true;
-    view.hidden = false;
-    lastCard = id;
-    window.scrollTo({ top: 0, behavior: "instant" });
-    const h = view.querySelector("h1");
-    if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); }
-    return;
+  const e = state.all.find((x) => x.id === id);
+  view.textContent = "";
+  const w = el(document, "div", "w");
+  if (e) {
+    w.append(detail(document, e));
+    fillLicences(w, [e]);
+    document.title = `${e.title} · agentglass plugins`;
+  } else {
+    const box = el(document, "div", "pl-missing");
+    box.append(el(document, "h1", null, "No such plugin"), el(document, "p", null, state.all.length ? "It is not in the catalogue, or it was taken out." : "The catalogue did not load."));
+    const back = el(document, "a", "pl-ghost", "All plugins");
+    back.href = "#/";
+    box.append(back);
+    w.append(box);
+    document.title = "Not found · agentglass plugins";
   }
-  document.title = "agentglass plugins";
-  if (!home.hidden) return;
+  view.append(w);
+  home.hidden = true;
+  view.hidden = false;
+  document.body.dataset.route = "plugin";
+  window.scrollTo({ top: 0, behavior: "instant" });
+  tag(view.querySelector(".pl-stage img"), "vt-shot");
+  tag(view.querySelector("h1"), "vt-title");
+  const h = view.querySelector("h1");
+  if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); }
+}
+
+function showHome() {
+  const home = $("#home");
+  const view = $("#view");
   view.hidden = true;
   view.textContent = "";
   home.hidden = false;
+  document.body.dataset.route = "home";
+  document.title = "agentglass plugins";
   /* Back from a plugin: to its card on the shelf, and the keyboard with it.
      The way back is "#/", which names no element: a fragment such as
      "#browse" makes Chrome scroll to it once the shelf is laid out again,
-     and that scroll takes the focus back off the card. */
-  /* Only a way back returns to the card: a link to another part of the page
+     and that scroll takes the focus back off the card.
+     Only a way back returns to the card: a link to another part of the page
      (the header, "List yours") goes where it says. */
   const back = location.hash === "" || location.hash === "#/";
-  const target = back && lastCard ? [...document.querySelectorAll(".card")].find((c) => c.dataset.id === lastCard) : null;
+  const target = back && lastCard ? cardOf(lastCard) : null;
   lastCard = "";
   if (wantSearch) {
     wantSearch = false;
     $("#browse").scrollIntoView({ behavior: "instant" });
     q.focus({ preventScroll: true });
   } else if (target) {
+    tag(target.querySelector(".pl-shot img"), "vt-shot");
+    tag(target.querySelector(".pl-name"), "vt-title");
     /* Twice: the browser's own Back restores the old scroll position after
        this event, and on the way resets the focus to the page. */
     const restore = () => {
       target.scrollIntoView({ block: "center", behavior: "instant" });
-      target.querySelector(".card-link").focus({ preventScroll: true });
+      target.querySelector(".pl-name").focus({ preventScroll: true });
     };
     restore();
     setTimeout(restore, 0);
@@ -234,6 +268,30 @@ function route() {
     const anchor = location.hash.length > 2 ? document.getElementById(location.hash.slice(1)) : null;
     (anchor || $("#browse")).scrollIntoView({ behavior: "instant" });
   }
+}
+
+/* Called with the hashchange event when the visitor moves, and without it
+   for the page's first view, which does not animate. */
+function route(ev) {
+  const animate = !!ev;
+  const m = location.hash.match(/^#\/plugin\/(.+)$/);
+  if (m) {
+    let id = "";
+    try { id = decodeURIComponent(m[1]); } catch { /* a malformed hash is no plugin */ }
+    const from = $("#home").hidden ? null : cardOf(id);
+    withTransition(() => showPlugin(id), () => {
+      tag(from && from.querySelector(".pl-shot img"), "vt-shot");
+      tag(from && from.querySelector(".pl-name"), "vt-title");
+    }, animate);
+    lastCard = id;
+    return;
+  }
+  if (!$("#home").hidden) {
+    /* Already home: the lockup's "#/" means the top of the page. */
+    if (location.hash === "#/") window.scrollTo({ top: 0, behavior: calm.matches ? "instant" : "smooth" });
+    return;
+  }
+  withTransition(showHome, null, animate);
 }
 window.addEventListener("hashchange", route);
 
@@ -243,22 +301,28 @@ q.addEventListener("input", () => { state.q = q.value; renderShelf(); });
 q.addEventListener("keydown", (ev) => {
   if (ev.key === "Escape" && q.value) { q.value = ""; state.q = ""; renderShelf(); ev.stopPropagation(); }
 });
-$("#scope").addEventListener("change", (ev) => { state.scope = ev.target.value; renderShelf(); });
-$("#sort").addEventListener("change", (ev) => { state.sort = ev.target.value; renderShelf(); });
+$("#scope").addEventListener("change", (ev) => { state.scope = ev.target.value; renderShelf({ animate: true }); });
+$("#sort").addEventListener("change", (ev) => { state.sort = ev.target.value; renderShelf({ animate: true }); });
 $("#cats").addEventListener("click", (ev) => {
   const b = ev.target.closest("button");
   if (!b) return;
   if (b.dataset.more) { state.showAllCats = !state.showAllCats; renderChips(); $("#cats [data-more]").focus(); return; }
   state.cat = b.dataset.cat === state.cat ? "" : b.dataset.cat;
-  renderShelf();
-  const again = [...document.querySelectorAll("#cats .chip")].find((c) => c.dataset.cat === b.dataset.cat);
+  renderShelf({ animate: true });
+  const again = [...document.querySelectorAll("#cats .pl-chip")].find((c) => c.dataset.cat === b.dataset.cat);
   if (again) again.focus();
 });
 $("#clear").addEventListener("click", () => {
   state.q = ""; state.cat = ""; state.scope = "";
   q.value = ""; $("#scope").value = "";
-  renderShelf();
+  renderShelf({ animate: true });
   q.focus();
+});
+/* The hero's prompt goes to the shelf and puts the cursor in its search. */
+$("#hero-go").addEventListener("click", (ev) => {
+  ev.preventDefault();
+  $("#browse").scrollIntoView({ behavior: calm.matches ? "instant" : "smooth" });
+  q.focus({ preventScroll: true });
 });
 /* Ctrl+K (Cmd+K on a Mac) goes to the search. Not a bare "/": a one-key
    shortcut fires on every "/" that speech input types (WCAG 2.1.4). */
@@ -283,6 +347,8 @@ const selectValue = (b) => {
   say("Copy failed. The value is selected: copy it with your keyboard.");
 };
 document.addEventListener("click", (ev) => {
+  const zoom = ev.target.closest && ev.target.closest("button.pl-stage");
+  if (zoom) { lightbox(zoom.dataset.zoom, zoom.querySelector("img").alt, zoom); return; }
   const b = ev.target.closest && ev.target.closest("button.copy");
   if (!b) return;
   if (!navigator.clipboard) { selectValue(b); return; }
@@ -295,6 +361,7 @@ document.addEventListener("click", (ev) => {
     b._t = setTimeout(() => { b.classList.remove("done"); b.setAttribute("aria-label", b.dataset.label); }, 1400);
   }, () => selectValue(b));
 });
+spotlight($("#grid"));
 
 /* ── load ─────────────────────────────────────────────────────── */
 function fail(msg) {
@@ -325,14 +392,16 @@ async function load() {
     for (const e of state.all) cards.set(e.id, card(document, e, "#/plugin/" + encodeURIComponent(e.id)));
     for (const c of cards.values()) fillLicences(c, state.all);
     renderShelf();
+    reveal([...cards.values()]);
     renderSeal();
+    satellites(n);
   } catch (err) {
     fail(`The catalogue did not load: ${err && err.message ? err.message : "unknown error"}.`);
   } finally {
     $("#grid").removeAttribute("aria-busy");
   }
-  route();
+  if (location.hash.startsWith("#/plugin/")) route();
+  else if (location.hash.length > 2 && location.hash !== "#/") document.getElementById(location.hash.slice(1))?.scrollIntoView({ behavior: "instant" });
 }
 $("#retry").addEventListener("click", load);
 load();
-

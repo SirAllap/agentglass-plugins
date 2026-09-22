@@ -44,6 +44,12 @@ class Element {
       else { assert.ok(n instanceof Element || n instanceof Text, "only nodes are appended"); this.childNodes.push(n); }
     }
   }
+  prepend(...nodes) {
+    const kept = this.childNodes;
+    this.childNodes = [];
+    this.append(...nodes);
+    this.childNodes.push(...kept);
+  }
   setAttribute(k, v) { this.attrs.set(String(k).toLowerCase(), String(v)); }
   getAttribute(k) { return this.attrs.get(String(k).toLowerCase()) ?? null; }
   addEventListener(type, fn) { this.listeners.push(type); }
@@ -68,7 +74,7 @@ function* walk(n) {
   if (n.childNodes) for (const c of n.childNodes) yield* walk(c);
 }
 /* The only elements render.js ever makes. */
-const ALLOWED = new Set(["ARTICLE", "DIV", "SPAN", "P", "H1", "H2", "H3", "A", "IMG", "DL", "DT", "DD", "UL", "OL", "LI", "B", "CODE", "Q", "BUTTON", "HEADER", "SECTION", "ASIDE", "SVG", "USE"]);
+const ALLOWED = new Set(["ARTICLE", "DIV", "SPAN", "P", "H1", "H2", "H3", "A", "IMG", "DL", "DT", "DD", "UL", "OL", "LI", "B", "S", "CODE", "Q", "BUTTON", "HEADER", "NAV", "SECTION", "ASIDE", "SVG", "USE"]);
 const URL_PROPS = ["href", "src"];
 
 function assertInert(root) {
