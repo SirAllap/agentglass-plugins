@@ -41,9 +41,9 @@ your issue to name the new commit, or open another.
 | Workflow | Runs on | Holds | Does |
 |---|---|---|---|
 | `plugin-submission.yml` → `read` | the issue opened or edited | `contents: read`, no credentials kept, no secrets | clones the named repository, validates, scans, writes a report |
-| `plugin-submission.yml` → `say` | after `read` | `issues: write` | posts the report and sets `ready for listing` or `changes needed`; never looks at the submitted code |
-| `plugin-approve.yml` | the `approved for listing` label | `contents: read`, `issues: write`, and an App token minted for the run | re-checks the labeller, clones again, validates, hashes and scans again, refuses an id already listed from another repository or the project's name as a stranger's publisher, and opens a pull request with auto-merge |
-| `check.yml` → `catalogue` | every pull request | `contents: read`, no secrets | re-derives the entry from the pull request: one entry, a full commit, the manifest's name, publisher and scope at that commit, and a fresh fetch that hashes to `sha256` |
+| `plugin-submission.yml` → `say` | after `read` | `issues: write` | posts the report and sets `ready for listing` or `changes needed`; a run about the commit the last report names rewrites it, a run about another commit posts a new one; never looks at the submitted code |
+| `plugin-approve.yml` | the `approved for listing` label | `contents: read`, `issues: write`, and an App token minted for the run | re-checks the labeller, lists only the commit the latest green report names, clones it again, validates, hashes and scans again, refuses an id already listed from another repository or the project's name as a stranger's publisher, and opens a pull request; it arms auto-merge only when `main` requires the `catalogue` check, and otherwise leaves the pull request for a maintainer |
+| `check.yml` → `catalogue` | every pull request | `contents: read`, no secrets | re-derives the entry from the pull request: one entry, a full commit on a branch or tag of the named repository, the manifest's name, publisher, scope, draws, `minApp` and title at that commit, and a fresh fetch that hashes to `sha256` |
 | `pages.yml` | a push to `main` | Pages | publishes `plugins.json` |
 
 Nothing submitted is ever executed, and the scanner follows no link out of the
