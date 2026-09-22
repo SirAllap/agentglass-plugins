@@ -46,12 +46,30 @@ your issue to name the new commit, or open another.
 | `plugin-submission.yml` → `say` | after `read` | `issues: write` | posts the report and sets `ready for listing` or `changes needed`; a run about the commit the last report names rewrites it, a run about another commit or repository posts a new one and is held: it takes `ready for listing` and `approved for listing` off before posting and never puts `ready for listing` back, so a maintainer reads it and applies it again; never looks at the submitted code |
 | `plugin-approve.yml` | the `approved for listing` label | `contents: read`, `issues: write`, and an App token minted for the run | re-checks the labeller, requires `ready for listing` (for a held report, applied by a person after it was posted), lists only the commit the latest green report names, clones it again, validates, hashes and scans again, refuses an id already listed from another repository or the project's name as a stranger's publisher, and opens a pull request; it arms auto-merge only when `main` requires the `catalogue` check, and otherwise leaves the pull request for a maintainer |
 | `check.yml` → `catalogue` | every pull request | `contents: read`, no secrets | re-derives the entry from the pull request: one entry, a full commit on a branch or tag of the named repository, the manifest's name, publisher, scope, draws, `minApp` and title at that commit, and a fresh fetch that hashes to `sha256` |
-| `pages.yml` | a push to `main` | Pages | publishes `plugins.json` |
+| `check.yml` → `site` | every pull request | `contents: read`, no secrets | runs the market site's tests: hostile entries, in a stub document and in headless Chrome, must render as text and run nothing |
+| `pages.yml` | a push to `main` | Pages | runs the same tests, then publishes the market site with `plugins.json` at its root |
 
 Nothing submitted is ever executed, and the scanner follows no link out of the
 folder it was handed. The validator and the hash come from the app
 repository's `bin/agentglass-plugin`, fetched at run time, so the catalogue
 holds a manifest to exactly the rules the app installs by.
+
+## The market site
+
+`site/` is the page Pages serves next to `plugins.json`: search, filters, a
+card per plugin and a page for each one, all drawn in the browser from the
+same file the app reads. There is no build step and nothing from another
+origin except a plugin's preview image and its `LICENSE`, both read from
+`raw.githubusercontent.com` at the listed commit.
+
+Every field of an entry is text on that page. `site/render.js` is the only
+file that turns an entry into elements and it never writes markup; the page's
+Content Security Policy requires Trusted Types with no policy, so a string
+assigned as markup throws instead of parsing. `node --test site/test/` feeds
+it hostile entries and fails if anything runs.
+
+    scripts/build-site.sh            # assembles _site/, as Pages does
+    python3 -m http.server -d _site  # then open http://localhost:8000
 
 ## Settings this repository needs
 
