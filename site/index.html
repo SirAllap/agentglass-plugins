@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- Everything on this page is served from this site, except two things read
+     from GitHub at a pinned commit: a plugin's preview image and its LICENSE.
+     Trusted Types with no policy means a string can never become markup here,
+     even by mistake: an innerHTML assignment throws. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' https://raw.githubusercontent.com; connect-src 'self' https://raw.githubusercontent.com; base-uri 'none'; form-action 'none'; require-trusted-types-for 'script'; trusted-types 'none'">
+<meta name="referrer" content="no-referrer">
+<title>agentglass plugins</title>
+<meta name="description" content="Plugins for agentglass, each listed at one commit and the hash of its files. Search the catalogue, read what a plugin asks for, and list your own.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#07060d" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f5fb" media="(prefers-color-scheme: light)">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+<script src="theme.js"></script>
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<!--
+  Direction. World: the agentglass landing page, extended: near-black violet
+  field, one violet accent, green for what is safe, amber for what to read
+  twice, system sans with mono only for commits, hashes and code; a light
+  twin on a pale violet paper.
+  Surface: a catalogue people operate — search, filter, open, install — under
+  a hero that persuades once.
+  Signature: the seal. The newest listing, shown as the catalogue names it
+  (a commit and a content hash), its hash settling into place on load.
+  Refusals: no eyebrows, no metric strip, no glass for its own sake, no
+  markup from the catalogue ever.
+  Risk: a two-plugin catalogue reads thin; the seal and the pinning copy
+  carry the page until the shelf fills.
+-->
+<svg class="sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-piece" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M5 7.2h3.7a2.3 2.3 0 1 1 4.6 0H17v3.7a2.3 2.3 0 1 1 0 4.6v3.7h-3.7a2.3 2.3 0 1 0-4.6 0H5v-3.7a2.3 2.3 0 1 0 0-4.6Z"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M3 12h5.8M15.2 12H21"/></g></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 16 16 8M9.5 8H16v6.5"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/><path d="M15.5 8.5V6.5a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/></g></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M19 12H5.5M11 6l-6 6 6 6"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></g></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></g></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></g></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" d="M19.5 14.5A7.5 7.5 0 0 1 9.5 4.5a7.5 7.5 0 1 0 10 10Z"/></symbol>
+  <symbol id="i-hash" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" d="M9.5 4 8 20M16 4l-1.5 16M4.5 9h15M4 15h15"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M6.5 3.5h7l4 4v13h-11Z"/><path d="M13.5 3.5v4h4"/></g></symbol>
+</svg>
+
+<a class="skip" href="#browse">Skip to the plugins</a>
+
+<header class="bar">
+  <div class="w bar-in">
+    <a class="brand" href="#top" aria-label="agentglass plugins, top of the page">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect x="3.5" y="4.5" width="25" height="23" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10.5 4.5v23" stroke="currentColor" stroke-width="2"/><circle cx="19.5" cy="16" r="3" class="brand-dot"/></svg>
+      <span class="brand-name">agentglass</span><span class="brand-sub">plugins</span>
+    </a>
+    <nav class="nav" aria-label="Site">
+      <a href="#browse">Browse</a>
+      <a href="#list-yours">List yours</a>
+      <a class="nav-raw" href="plugins.json">plugins.json</a>
+      <button id="theme" class="theme" type="button">
+        <svg class="ic sun" aria-hidden="true"><use href="#i-sun"/></svg>
+        <svg class="ic moon" aria-hidden="true"><use href="#i-moon"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<div id="home">
+  <section class="hero" id="top" aria-labelledby="hero-title">
+    <div class="w hero-in">
+      <div class="hero-copy">
+        <h1 id="hero-title">Plugins for agentglass, pinned to the commit you&nbsp;read.</h1>
+        <p class="lede">A plugin adds a panel, a settings page, or notes and a button inside your pull requests. It runs as its own process, with only the scope you approve. Every listing here names one commit and the hash of its files, and the app refuses to install anything else.</p>
+        <div class="hero-acts">
+          <a class="btn primary" href="#browse">Browse plugins</a>
+          <a class="btn" href="#list-yours">List your plugin</a>
+        </div>
+        <p class="hero-facts" id="hero-facts"></p>
+      </div>
+      <aside class="seal" id="seal" aria-labelledby="seal-cap">
+        <p class="seal-cap" id="seal-cap">The newest listing, as the catalogue names it</p>
+        <a class="seal-title" id="seal-title" href="#browse">…</a>
+        <dl class="seal-rows">
+          <div><dt>id</dt><dd id="seal-id">…</dd></div>
+          <div><dt>source.ref</dt><dd id="seal-ref">…</dd></div>
+          <div><dt>sha256</dt><dd><span id="seal-sha" class="sha" aria-hidden="true">…</span><span class="vh" id="seal-sha-real"></span></dd></div>
+        </dl>
+        <p class="seal-foot"><svg class="ic-s" aria-hidden="true"><use href="#i-check"/></svg>Bytes, not a branch. A push after listing changes nothing here.</p>
+      </aside>
+    </div>
+  </section>
+
+  <section class="browse" id="browse" aria-labelledby="browse-title">
+    <div class="w">
+      <div class="browse-head">
+        <h2 id="browse-title">Browse the catalogue</h2>
+        <p class="count" id="count" aria-live="polite"></p>
+      </div>
+      <div class="tools" role="search" aria-label="Plugins">
+        <label class="search">
+          <svg class="ic" aria-hidden="true"><use href="#i-search"/></svg>
+          <span class="vh">Search plugins</span>
+          <input id="q" type="search" aria-keyshortcuts="Control+K Meta+K" placeholder="Search by name, publisher or word" autocomplete="off" spellcheck="false">
+          <kbd aria-hidden="true" id="q-key">Ctrl K</kbd>
+        </label>
+        <label class="pick">
+          <span class="vh">Scope</span>
+          <select id="scope">
+            <option value="">Any scope</option>
+            <option value="read">Reads only</option>
+            <option value="answer">Can answer chats</option>
+            <option value="full">Full access</option>
+          </select>
+        </label>
+        <label class="pick">
+          <span class="vh">Sort</span>
+          <select id="sort">
+            <option value="added">Newest first</option>
+            <option value="name">A to Z</option>
+          </select>
+        </label>
+      </div>
+      <div class="chips" id="cats" role="group" aria-label="Category"></div>
+
+      <div class="note">
+        <svg class="ic" aria-hidden="true"><use href="#i-eye"/></svg>
+        <p><b>Listing is not auditing.</b> A listed plugin has a public repository, a manifest the app accepts, a README and a licence, and it passed a scan for a short list of patterns. That is all a machine can check. It still runs as a process on your machine, and it still asks you to approve its scope. Read the code before you install anything, listed or not.</p>
+      </div>
+
+      <noscript><p class="empty">The catalogue is drawn by a script on this page. Without it, read <a href="plugins.json">plugins.json</a> directly.</p></noscript>
+      <div class="grid" id="grid" aria-busy="true">
+        <div class="card ghost" aria-hidden="true"></div>
+        <div class="card ghost" aria-hidden="true"></div>
+      </div>
+      <div class="empty" id="empty" hidden>
+        <p id="empty-what"></p>
+        <button class="btn" id="clear" type="button">Clear the search and filters</button>
+      </div>
+      <div class="empty error" id="error" hidden role="alert">
+        <p id="error-what"></p>
+        <button class="btn" id="retry" type="button">Try again</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="list" id="list-yours" aria-labelledby="list-title">
+    <div class="w list-in">
+      <div class="list-copy">
+        <h2 id="list-title">List your plugin</h2>
+        <p class="sub">You do not need to be listed to be installed: anybody can install a plugin from its git URL today. The catalogue is for being found, and for being installed at a commit somebody could read.</p>
+        <ol class="flow">
+          <li><b>Ship the repository.</b> Public, with <code>plugin.json</code> at its root, a README that says what it does and what leaves the machine, and a LICENSE. A wide <code>preview.png</code> at the root becomes your card's picture.</li>
+          <li><b>Validate it.</b> <code>agentglass-plugin validate .</code> applies the rules the app installs by.</li>
+          <li><b>Open the listing issue.</b> A check clones the repository, validates it, scans the source and writes what it found on the issue.</li>
+          <li><b>A maintainer decides.</b> On approval, a pull request adds your entry, pinned to the commit the check read.</li>
+        </ol>
+        <div class="list-acts">
+          <a class="btn primary" href="https://github.com/SirAllap/agentglass-plugins/issues/new?template=plugin_submission.yml" rel="noopener noreferrer">Open the listing issue<svg class="ic-s" aria-hidden="true"><use href="#i-out"/></svg></a>
+          <a class="btn" href="https://github.com/SirAllap/agentglass-plugins#being-listed" rel="noopener noreferrer">Read the rules<svg class="ic-s" aria-hidden="true"><use href="#i-out"/></svg></a>
+        </div>
+      </div>
+      <figure class="entry">
+        <figcaption>What an entry promises. <span>An invented example.</span></figcaption>
+        <pre tabindex="0" aria-label="Example catalogue entry"><code>{
+  "id": "orbit-lint",
+  "source": {
+    "kind": "git",
+    "url": "https://github.com/acme/orbit-lint",
+    <mark>"ref": "3f2a9c0d41b7e8a6f5c2d19e0b4a7c63d8e1f205"</mark>
+  },
+  <mark>"sha256": "5d0e…c41a"</mark>,
+  "preview": "https://raw.githubusercontent.com/acme/orbit-lint/3f2a9c0…/preview.png"
+}</code></pre>
+        <dl class="promise">
+          <div><dt><svg class="ic-s" aria-hidden="true"><use href="#i-pin"/></svg><code>source.ref</code></dt><dd>The full commit the approval cloned. Not a branch, which can move.</dd></div>
+          <div><dt><svg class="ic-s" aria-hidden="true"><use href="#i-hash"/></svg><code>sha256</code></dt><dd>The hash of every file at that commit, by the same walk the app does at install. <code>agentglass-plugin hash &lt;folder&gt;</code> prints it.</dd></div>
+          <div><dt><svg class="ic-s" aria-hidden="true"><use href="#i-file"/></svg><code>preview</code></dt><dd>Read at that commit too, so the picture cannot change after approval.</dd></div>
+        </dl>
+        <p class="entry-foot">The app refuses an install whose files hash to anything else. A push to your repository after you are listed changes nothing for anybody who installs from here. A new version is a new submission.</p>
+      </figure>
+    </div>
+  </section>
+</div>
+
+<div id="view" hidden></div>
+</main>
+
+<footer class="foot">
+  <div class="w foot-in">
+    <p>The catalogue <a href="https://github.com/SirAllap/agentglass">agentglass</a> installs from. This page is static: no cookies, no analytics, no scripts from anywhere else.</p>
+    <p class="foot-links"><a href="plugins.json">plugins.json</a><a href="https://github.com/SirAllap/agentglass-plugins" rel="noopener noreferrer">Source of this catalogue</a></p>
+  </div>
+</footer>
+<p class="vh" id="live" aria-live="polite"></p>
+</body>
+</html>
