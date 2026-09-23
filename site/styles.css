@@ -17,29 +17,10 @@
  /* The landing's curves, named once. */
  --out:cubic-bezier(.16,1,.3,1);
  --lift:cubic-bezier(.2,.7,.3,1);
- /* The one token changed: the landing's --dim2 (#57546e) is 2.8:1 on the
-    void, and here it carries text (counts, labels, footnotes). #807d9a is
-    the same grey-violet at 5.1:1 on the void and 4.7:1 on the tinted
-    tables and cards, over the WCAG AA floor for small text on all of them. */
- --dim2:#807d9a;
- --card-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 24px 60px -34px rgba(0,0,0,.9);
+  --card-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 24px 60px -34px rgba(0,0,0,.9);
  --card-shadow-up:0 1px 0 rgba(255,255,255,.05) inset,0 34px 80px -34px rgba(0,0,0,.95),0 0 0 1px rgba(167,139,250,.08);
  --glow:rgba(167,139,250,.16);
 }
-
-/* ── the header, formed ───────────────────────────────────────────
-   On the landing the lockup arrives large and docks as the page scrolls.
-   Here it is already home: these are the landing's own rules for its inner
-   pages (body:not([data-route="home"])), held for every view. The mark keeps
-   its orbit, the caret its blink, the rule its sweep. */
-.hd-bar,.hd-nav{opacity:1;animation:none}
-.hd-bar{height:calc(62px + var(--safe))}
-.hd-lock{transform:none;animation:none}
-.hd-ring,.hd-halo{display:none}
-.hd-rule{animation:none;transform:scaleX(1)}
-.hd-sweep{opacity:1;top:calc(61px + var(--safe));
- animation:sweep 7s cubic-bezier(.55,0,.45,1) infinite;animation-timeline:auto;animation-range:normal}
-.hd-nav a.here{color:var(--txt)}
 
 /* ── page furniture ───────────────────────────────────────────── */
 .sprite{position:absolute;width:0;height:0;overflow:hidden}
@@ -70,9 +51,8 @@ html{scrollbar-color:rgba(167,139,250,.28) var(--void);scroll-padding-top:calc(7
 /* Rhythm: the landing's 104px between sections, and its last section's
    shorter foot (#get: 104px 72px), so the page ends on the footer, not on
    a band of nothing. */
-#browse{padding-top:88px;padding-bottom:56px}
-#list-yours{padding-top:88px;padding-bottom:72px}
-.foot2{margin-top:0}
+#browse{padding-bottom:56px}
+#list-yours{padding-bottom:72px}
 /* The pass: the mark's own drawing at the size of a hero. The world, its
    steep orbit, the live contact, and one satellite for each listed plugin,
    passing behind the world and in front of it. */
@@ -380,7 +360,6 @@ html{scrollbar-color:rgba(167,139,250,.28) var(--void);scroll-padding-top:calc(7
  .pl-fact{flex-direction:column;align-items:flex-start;gap:4px}
  .pl-fact dd{text-align:left;justify-content:flex-start}
  .copyable code{text-align:left}
- .foot2{padding-inline:16px}
 }
 /* Touch: every target at least 44px. */
 @media (pointer:coarse){

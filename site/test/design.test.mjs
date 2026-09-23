@@ -18,7 +18,7 @@ const read = (f) => readFileSync(join(site, f), "utf8");
 
 /* The landing's :root, as landing/index.html declares it. */
 const LANDING_TOKENS = {
-  "--void": "#07060d", "--txt": "#f2f1f8", "--dim": "#8b88a4", "--dim2": "#57546e",
+  "--void": "#07060d", "--txt": "#f2f1f8", "--dim": "#8b88a4", "--dim2": "#807d9a",
   "--vio": "#a78bfa", "--vio2": "#7c5cf5", "--run": "#34d399", "--wait": "#fbbf24", "--held": "#f472b6",
   "--line": "rgba(167,139,250,.13)", "--line2": "rgba(167,139,250,.3)", "--l": "rgba(167,139,250,.2)",
   "--mono": 'ui-monospace,"SF Mono",Menlo,Consolas,monospace',
@@ -37,11 +37,9 @@ test("landing.css carries the landing's tokens, verbatim", () => {
   assert.match(got["--pop"], /^linear\(0, 0\.1535 4\.2%/, "the landing's spring curve");
 });
 
-test("the market changes one landing token, --dim2, and only to lift text to AA", () => {
+test("the market changes no landing token: its own values sit in styles.css and are not tokens", () => {
   const ours = tokens(read("styles.css"));
-  const touched = Object.keys(ours).filter((k) => k in LANDING_TOKENS);
-  assert.deepEqual(touched, ["--dim2"]);
-  assert.equal(ours["--dim2"], "#807d9a");
+  assert.deepEqual(Object.keys(ours).filter((k) => k in LANDING_TOKENS), []);
 });
 
 test("the favicon is the official mark's small cut", () => {

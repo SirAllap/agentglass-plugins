@@ -13,6 +13,13 @@
  * drawn in its final state: the sentence lit, no orbs, no satellite, and
  * every orbit stopped.
  */
+
+/* Served from this machine next to the landing, the links that lead to it
+   lead to it. Deployed, nothing here runs and they stay as written. */
+if (/^(127\.0\.0\.1|localhost)$/.test(location.hostname)) {
+  for (const a of document.querySelectorAll('a[href^="https://sirallap.github.io/agentglass/"]:not([href*="/demo/"])'))
+    a.href = a.href.replace("https://sirallap.github.io/agentglass/", "http://127.0.0.1:4791/");
+}
 export const calm = matchMedia("(prefers-reduced-motion: reduce)");
 const $ = (s) => document.querySelector(s);
 const ease = "cubic-bezier(.16,1,.3,1)";
