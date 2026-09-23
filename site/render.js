@@ -34,7 +34,10 @@ const HEX64 = /^[0-9a-f]{64}$/;
 const GITHUB_REPO = /^https:\/\/github\.com\/([A-Za-z0-9](?:[A-Za-z0-9-]{0,38}))\/([A-Za-z0-9._-]{1,100}?)(?:\.git)?\/?$/;
 const IMAGE = /\.(png|jpe?g|webp|gif)$/i;
 
-const str = (v, max = 4000) => (typeof v === "string" ? v.slice(0, max) : "");
+/* Cut to length, then made well formed: a cut through an emoji leaves half a
+   surrogate pair, which encodeURIComponent refuses. */
+const wellFormed = (s) => (typeof s.toWellFormed === "function" ? s.toWellFormed() : s.replace(/[\ud800-\udbff](?![\udc00-\udfff])|(?<![\ud800-\udbff])[\udc00-\udfff]/g, "�"));
+const str = (v, max = 4000) => (typeof v === "string" ? wellFormed(v.slice(0, max)) : "");
 
 /**
  * The parts of an entry the page trusts, checked once.
@@ -62,7 +65,7 @@ export function readEntry(p) {
     draws: Array.isArray(p.draws) ? [...new Set(p.draws.filter((d) => typeof d === "string" && Object.hasOwn(DRAWS, d)))] : [],
     categories: Array.isArray(p.categories) ? [...new Set(p.categories.filter((c) => typeof c === "string" && c.trim()).map((c) => c.trim().toLowerCase().slice(0, 40)))] : [],
     description: str(p.description, 4000).trim(),
-    added: /^\d{4}-\d{2}-\d{2}$/.test(str(p.added, 10)) ? p.added : "",
+    added: typeof p.added === "string" && /^\d{4}-\d{2}-\d{2}$/.test(p.added) ? p.added : "",
     ref: HEX40.test(ref) ? ref : "",
     sha256: HEX64.test(sha) ? sha : "",
     repo,

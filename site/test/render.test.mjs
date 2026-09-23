@@ -137,6 +137,9 @@ test("fields the catalogue does not vouch for are dropped", () => {
   assert.equal(b.scope, null, "an unknown scope is no scope");
   assert.equal(b.sha256, "");
   assert.equal(b.added, "");
+  assert.equal(readEntry({ id: "x", added: "2026-01-01 · verified by the agentglass project" }).added, "", "a date with words after it is no date");
+  const cut = readEntry({ id: "a".repeat(199) + "😀" });
+  assert.doesNotThrow(() => encodeURIComponent(cut.id), "an id cut through an emoji still makes a URL");
   assert.equal(c.preview, "", "a picture on another host is refused");
 });
 

@@ -63,6 +63,9 @@ code{font-family:var(--mono)}
 input{caret-color:var(--run)}
 html{scrollbar-color:rgba(167,139,250,.28) var(--void);scroll-padding-top:calc(76px + var(--safe))}
 .noheader{scroll-padding-top:16px}
+/* The page's scroll padding already clears the header; the landing's own
+   section margin would add a second 84px on top of it. */
+.sec{scroll-margin-top:0}
 .pl-count,.pl-chip-n,.seal-rows dd,.pl-fact dd{font-variant-numeric:tabular-nums}
 /* The landing positions its sections only inside its scroll scene; the
    market has no scene, and the orbs need a box to sit in. */
@@ -149,14 +152,16 @@ html{scrollbar-color:rgba(167,139,250,.28) var(--void);scroll-padding-top:calc(7
 /* The card: the landing's, with the whole card one link, a light that
    follows the pointer, and a lift that the shadow answers. Its tint sits on
    a solid ground, so an orb or the satellite passing behind stays behind. */
-.pl-card{position:relative;box-shadow:var(--card-shadow);
+.pl-card{position:relative;isolation:isolate;box-shadow:var(--card-shadow);
  background:linear-gradient(180deg,rgba(167,139,250,.07),rgba(167,139,250,.02)),#0a0912;
  transition:border-color .2s,transform .35s var(--lift),box-shadow .35s var(--lift)}
 .pl-card.pre{opacity:0}
-.pl-card::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;opacity:0;
+/* The light sits under the card's content (z-index -1 inside the card's own
+   stacking context). Nothing between the title link and the card is
+   positioned, so the link's ::after stretches over the whole card. */
+.pl-card::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:-1;opacity:0;
  background:radial-gradient(420px circle at var(--mx,50%) var(--my,0%),var(--glow),transparent 60%);
  transition:opacity .3s}
-.pl-card>*{position:relative;z-index:1}
 .pl-card .pl-shot{isolation:isolate}
 .pl-card .pl-shot img{transition:transform .7s var(--out)}
 .pl-card .pl-shot::after{content:"";position:absolute;inset:0;pointer-events:none;
@@ -398,6 +403,10 @@ html{scrollbar-color:rgba(167,139,250,.28) var(--void);scroll-padding-top:calc(7
 /* ── the visitor's settings ───────────────────────────────────── */
 @media (prefers-reduced-motion:reduce){
  html{scroll-behavior:auto}
+ /* The landing's kill switch names every element but no pseudo-element;
+    the orbit round a plugin's icon, the seal's read-down line and the
+    picture's sheen live on ::before and ::after. */
+ *::before,*::after{animation:none!important;transition:none!important}
  .hd-sweep{display:none}
  /* The landing's reduced-motion hero drops to 110px; the market's hero
     keeps its own top, moving or not. */

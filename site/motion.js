@@ -81,6 +81,8 @@ if (pass && !calm.matches && matchMedia("(hover: hover) and (pointer: fine)").ma
   const hero = pass.closest(".one");
   let tx = 0, ty = 0, x = 0, y = 0, running = false;
   const step = () => {
+    /* Reduced motion switched on mid-visit: settle where it is. */
+    if (calm.matches) { tx = x; ty = y; running = false; return; }
     x += (tx - x) * 0.08;
     y += (ty - y) * 0.08;
     pass.style.setProperty("--px", x.toFixed(2) + "px");
@@ -161,14 +163,18 @@ if (one && line && prompt) {
 /* ── the sections (landing: rise, lines, orbs, satellite) ──────────── */
 if (!calm.matches) requestAnimationFrame(() => {
   const secs = [...document.querySelectorAll("#home .sec")];
+  /* Threshold 0, not the landing's .08: a part taller than about eleven
+     screens never shows 8% of itself at once, and would stay hidden. */
   const io = new IntersectionObserver((es) => es.forEach((e) => {
     if (!e.isIntersecting) return;
     e.target.classList.add("in");
     io.unobserve(e.target);
     setTimeout(() => e.target.classList.add("done"), 1400);
-  }), { rootMargin: "0px 0px -12% 0px", threshold: 0.08 });
+  }), { rootMargin: "0px 0px -12% 0px", threshold: 0 });
   secs.forEach((s) => {
-    const kids = [...s.querySelector(".w").children];
+    /* The shelf grows with the catalogue and its cards rise on their own
+       (reveal() below), so it is left out of the section's rise. */
+    const kids = [...s.querySelector(".w").children].filter((k) => !k.classList.contains("pl-shelf"));
     kids.forEach((k, i) => { k.classList.add("rv"); k.style.transitionDelay = (i * 90) + "ms"; io.observe(k); });
   });
 
@@ -283,6 +289,7 @@ export function reveal(nodes) {
       if (!e.isIntersecting) continue;
       io.unobserve(e.target);
       e.target.classList.remove("pre");
+      if (calm.matches) continue;
       e.target.animate([{ opacity: 0, transform: "translateY(28px) scale(.985)" }, { opacity: 1, transform: "none" }],
         { duration: 800, delay: n++ * 90, easing: ease, fill: "backwards" });
     }

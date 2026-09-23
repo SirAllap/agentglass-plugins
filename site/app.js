@@ -136,7 +136,10 @@ function renderSeal() {
  * readers, which read the value from a hidden copy.
  */
 function settle(node, value, watch, done = () => {}) {
-  if (calm.matches) { node.textContent = value; done(); return; }
+  /* The real value is on the page until the moment plays: a print, a save
+     or a screenshot taken before it never shows a placeholder. */
+  node.textContent = value;
+  if (calm.matches) { done(); return; }
   const hex = "0123456789abcdef";
   let i = 0;
   const tick = () => {
@@ -146,7 +149,6 @@ function settle(node, value, watch, done = () => {}) {
     node.textContent = s;
     if (i < value.length) setTimeout(tick, 22); else done();
   };
-  node.textContent = "0".repeat(value.length);
   if (!("IntersectionObserver" in window)) { setTimeout(tick, 380); return; }
   new IntersectionObserver(([x], o) => {
     if (x.isIntersecting) { o.disconnect(); setTimeout(tick, 500); }
@@ -154,6 +156,9 @@ function settle(node, value, watch, done = () => {}) {
 }
 
 /* ── the lightbox: the picture at actual size, one way out ───────── */
+/* Closes the open lightbox, if any; a route change calls it too, so Back
+   with the picture enlarged never leaves it over another page. */
+let closeLightbox = () => {};
 function lightbox(src, alt, opener) {
   const box = el(document, "div", "pl-lb");
   box.setAttribute("role", "dialog");
@@ -169,12 +174,14 @@ function lightbox(src, alt, opener) {
   x.setAttribute("aria-label", "Close");
   const root = document.documentElement;
   const was = root.style.overflow;
-  const close = () => {
+  const close = (refocus = true) => {
     box.remove();
     root.style.overflow = was;
     removeEventListener("keydown", keys, true);
-    opener.focus({ preventScroll: true });
+    closeLightbox = () => {};
+    if (refocus && opener.isConnected) opener.focus({ preventScroll: true });
   };
+  closeLightbox = () => close(false);
   const keys = (ev) => {
     if (ev.key === "Escape") { ev.preventDefault(); close(); }
     else if (ev.key === "Tab") { ev.preventDefault(); x.focus(); }
@@ -184,8 +191,8 @@ function lightbox(src, alt, opener) {
     const full = box.classList.toggle("full");
     cap.textContent = full ? "Click again to fit  ·  Esc to close" : "Click the image for actual size  ·  Esc to close";
   });
-  box.addEventListener("click", close);
-  x.addEventListener("click", close);
+  box.addEventListener("click", () => close());
+  x.addEventListener("click", () => close());
   addEventListener("keydown", keys, true);
   box.append(img, cap, x);
   root.style.overflow = "hidden";
@@ -195,6 +202,8 @@ function lightbox(src, alt, opener) {
 
 /* ── routing ──────────────────────────────────────────────────── */
 let lastCard = "";
+let lastLink = null;
+let fromHash = "";
 let wantSearch = false;
 const cardOf = (id) => [...document.querySelectorAll("#grid .pl-card")].find((c) => c.dataset.id === id);
 
@@ -267,21 +276,28 @@ function showHome() {
      and that scroll takes the focus back off the card.
      Only a way back returns to the card: a link to another part of the page
      (the header, "List yours") goes where it says. */
-  const back = location.hash === "" || location.hash === "#/";
-  const target = back && lastCard ? cardOf(lastCard) : null;
-  lastCard = "";
+  /* The entry before the plugin can carry a fragment of its own ("#browse"
+     after the skip link or a header link): arriving back at it is a way back
+     too. */
+  const back = location.hash === "" || location.hash === "#/" || (fromHash !== "" && location.hash === fromHash);
+  /* Back to the link that opened the plugin: its card on the shelf, or the
+     seal in the hero. */
+  const link = back && lastLink && lastLink.isConnected && lastLink.closest("#home") ? lastLink : null;
+  const target = link ? link.closest(".pl-card") || link : back && lastCard ? cardOf(lastCard) : null;
+  lastCard = ""; lastLink = null; fromHash = "";
   if (wantSearch) {
     wantSearch = false;
     $("#browse").scrollIntoView({ behavior: "instant" });
     q.focus({ preventScroll: true });
   } else if (target) {
+    const focusable = target.matches("a") ? target : target.querySelector(".pl-name");
     tag(target.querySelector(".pl-shot img, .pl-shot .pl-manifest"), "vt-shot");
-    tag(target.querySelector(".pl-name"), "vt-title");
+    tag(focusable, "vt-title");
     /* Twice: the browser's own Back restores the old scroll position after
        this event, and on the way resets the focus to the page. */
     const restore = () => {
       target.scrollIntoView({ block: "center", behavior: "instant" });
-      target.querySelector(".pl-name").focus({ preventScroll: true });
+      focusable.focus({ preventScroll: true });
     };
     restore();
     setTimeout(restore, 0);
@@ -295,11 +311,18 @@ function showHome() {
    for the page's first view, which does not animate. */
 function route(ev) {
   const animate = !!ev;
+  closeLightbox();
   const m = location.hash.match(/^#\/plugin\/(.+)$/);
   if (m) {
     let id = "";
     try { id = decodeURIComponent(m[1]); } catch { /* a malformed hash is no plugin */ }
-    const from = $("#home").hidden ? null : cardOf(id);
+    const fromHome = !$("#home").hidden;
+    if (fromHome) {
+      try { fromHash = ev ? new URL(ev.oldURL).hash : ""; } catch { fromHash = ""; }
+    }
+    /* The picture and the name fly from the card that was opened; from the
+       seal there is no card to fly from. */
+    const from = fromHome ? (lastLink && lastLink.closest(".pl-card")) || (lastLink ? null : cardOf(id)) : null;
     withTransition(() => showPlugin(id), () => {
       tag(from && from.querySelector(".pl-shot img, .pl-shot .pl-manifest"), "vt-shot");
       tag(from && from.querySelector(".pl-name"), "vt-title");
@@ -312,9 +335,19 @@ function route(ev) {
     if (location.hash === "#/") window.scrollTo({ top: 0, behavior: calm.matches ? "instant" : "smooth" });
     return;
   }
-  withTransition(showHome, null, animate);
+  /* The way back morphs too: the page's picture and title are named before
+     the old state is captured. */
+  withTransition(showHome, () => {
+    tag($("#view .pl-stage img, #view .pl-stage .pl-manifest"), "vt-shot");
+    tag($("#view h1"), "vt-title");
+  }, animate);
 }
 window.addEventListener("hashchange", route);
+/* Which link opened a plugin, so the way back can return to it. */
+document.addEventListener("click", (ev) => {
+  const a = ev.target.closest && ev.target.closest('#home a[href^="#/plugin/"]');
+  if (a) lastLink = a;
+}, true);
 
 /* ── controls ─────────────────────────────────────────────────── */
 const q = $("#q");

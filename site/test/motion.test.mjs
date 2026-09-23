@@ -27,21 +27,27 @@ const chrome = [process.env.CHROME, "/usr/bin/chromium", "/usr/bin/chromium-brow
   .find((p) => p && existsSync(p));
 const skip = !chrome ? "no Chrome or Chromium installed" : typeof WebSocket === "undefined" ? "this Node has no WebSocket" : false;
 
-/* Three invented plugins: one satellite each on the pass. */
-const catalogue = {
+/* Invented plugins: three by default (one satellite each on the pass), more
+   when a test needs a long shelf. */
+let count = 3;
+const NAMES = ["orbit-lint", "moon-notes", "tidal-review"];
+const catalogue = () => ({
   name: "fixture",
-  plugins: ["orbit-lint", "moon-notes", "tidal-review"].map((id, i) => ({
-    id, title: id.replace("-", " "), publisher: "acme", verified: false, scope: "read", draws: ["panel"],
-    source: { kind: "git", url: `https://github.com/acme/${id}`, ref: REF }, sha256: SHA,
-    description: "An invented plugin.", categories: ["lint"], added: `2026-01-0${i + 1}`,
-  })),
-};
+  plugins: Array.from({ length: count }, (_, i) => {
+    const id = NAMES[i] || `comet-${i}`;
+    return {
+      id, title: id.replace("-", " "), publisher: "acme", verified: false, scope: "read", draws: ["panel"],
+      source: { kind: "git", url: `https://github.com/acme/${id}`, ref: REF }, sha256: SHA,
+      description: "An invented plugin.", categories: ["lint"], added: `2026-01-${String((i % 28) + 1).padStart(2, "0")}`,
+    };
+  }),
+});
 
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".json": "application/json" };
 function serve() {
   const server = createServer(async (req, res) => {
     const path = new URL(req.url, "http://x").pathname;
-    if (path === "/plugins.json") { res.writeHead(200, { "content-type": TYPES[".json"] }).end(JSON.stringify(catalogue)); return; }
+    if (path === "/plugins.json") { res.writeHead(200, { "content-type": TYPES[".json"] }).end(JSON.stringify(catalogue())); return; }
     const file = path === "/" ? "index.html" : path.slice(1);
     if (file.includes("/") || file.includes("..")) { res.writeHead(404).end(); return; }
     try { res.writeHead(200, { "content-type": TYPES[extname(file)] || "application/octet-stream" }).end(await readFile(join(site, file))); } catch { res.writeHead(404).end(); }
@@ -76,10 +82,11 @@ async function browser() {
   });
   const send = (method, params = {}, sessionId) => new Promise((ok, no) => { const i = ++id; pending.set(i, { ok, no }); ws.send(JSON.stringify({ id: i, method, params, sessionId })); });
 
-  async function open(url, { w = 1440, h = 900, reduced = false, mobile = false } = {}) {
+  async function open(url, { w = 1440, h = 900, reduced = false, mobile = false, init = "" } = {}) {
     const { targetId } = await send("Target.createTarget", { url: "about:blank" });
     const { sessionId } = await send("Target.attachToTarget", { targetId, flatten: true });
     await send("Page.enable", {}, sessionId);
+    if (init) await send("Page.addScriptToEvaluateOnNewDocument", { source: init }, sessionId);
     await send("Emulation.setDeviceMetricsOverride", { width: w, height: h, deviceScaleFactor: 1, mobile }, sessionId);
     await send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-motion", value: reduced ? "reduce" : "no-preference" }] }, sessionId);
     const loaded = events.length;
@@ -120,6 +127,21 @@ test("the page moves the way the landing does, and not at all when asked", { ski
       await p.close();
     });
 
+    await t.test("under reduced motion nothing starts, on the shelf or a plugin's page", async () => {
+      /* Every animation and transition that starts, from the first byte,
+         pseudo-elements included. */
+      const init = "window.__moved=[];for(const k of ['animationstart','transitionstart'])document.addEventListener(k,(e)=>__moved.push(e.type+':'+(e.animationName||e.propertyName)+(e.pseudoElement||'')),true);";
+      for (const url of [base, `${base}#/plugin/orbit-lint`]) {
+        const p = await b.open(url, { reduced: true, init });
+        await sleep(1200);
+        const moved = await p.ask("window.__moved");
+        const running = await p.ask("document.getAnimations().filter((a) => a.playState === 'running').length");
+        assert.deepEqual(moved, [], `${url}: nothing starts`);
+        assert.equal(running, 0, `${url}: nothing runs`);
+        await p.close();
+      }
+    });
+
     await t.test("under reduced motion nothing moves and everything is shown", async () => {
       const p = await b.open(base, { reduced: true });
       const s = await p.ask(`(() => ({
@@ -151,10 +173,46 @@ test("the page moves the way the landing does, and not at all when asked", { ski
     await t.test("a phone never scrolls sideways, on the shelf or a plugin's page", async () => {
       for (const url of [base, base + "?variant=noheader", `${base}#/plugin/orbit-lint`]) {
         const p = await b.open(url, { w: 390, h: 844, mobile: true });
-        const s = await p.ask(`({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth })`);
+        const s = await p.ask(`({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth,
+          /* Sections clip what overflows them, so the page width alone cannot
+             catch content cut at the edge: no visible part may reach past it. */
+          past: [...document.querySelectorAll("#main *, footer *")].filter((e) => !e.closest("[aria-hidden='true'], [hidden]"))
+            .filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && (r.right > innerWidth + 1 || r.left < -1); })
+            .map((e) => e.tagName + "." + e.className).slice(0, 5) })`);
         assert.equal(s.sw, s.cw, `${url} is ${s.sw}px wide in a ${s.cw}px screen`);
+        assert.deepEqual(s.past, [], `${url}: parts cut at the edge`);
         await p.close();
       }
+    });
+
+    await t.test("a long shelf shows its cards as it is scrolled, on a phone", async () => {
+      count = 40;
+      try {
+        const p = await b.open(base, { w: 390, h: 844, mobile: true });
+        const s = await p.ask(`(async () => {
+          const shelf = document.querySelector(".pl-shelf");
+          const mid = document.querySelectorAll("#grid .pl-card")[20];
+          mid.scrollIntoView({ block: "center", behavior: "instant" });
+          await new Promise((r) => setTimeout(r, 1600));
+          return { shelf: getComputedStyle(shelf).opacity, card: getComputedStyle(mid).opacity, cards: document.querySelectorAll("#grid .pl-card").length };
+        })()`);
+        assert.deepEqual(s, { shelf: "1", card: "1", cards: 40 });
+        await p.close();
+      } finally {
+        count = 3;
+      }
+    });
+
+    await t.test("the whole card opens the plugin, picture included", async () => {
+      const p = await b.open(base, { reduced: true });
+      const s = await p.ask(`(() => {
+        const card = document.querySelector("#grid .pl-card");
+        card.scrollIntoView({ block: "center", behavior: "instant" });
+        const hit = (el) => { const r = el.getBoundingClientRect(); return document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); };
+        return ["pl-shot", "pl-desc", "pl-inst"].map((c) => hit(card.querySelector("." + c))?.closest("a")?.className || "none");
+      })()`);
+      assert.deepEqual(s, ["pl-name", "pl-name", "pl-name"]);
+      await p.close();
     });
 
     await t.test("a plugin's page puts the keyboard on its title", async () => {
@@ -170,7 +228,8 @@ test("the page moves the way the landing does, and not at all when asked", { ski
         document.querySelector(".pl-big").click();
         await new Promise((r) => setTimeout(r, 300));
         const box = document.getElementById("install").getBoundingClientRect();
-        return { route: document.body.dataset.route, hash: location.hash, inView: box.top >= 0 && box.top < innerHeight,
+        const header = document.querySelector(".hd").getBoundingClientRect().bottom;
+        return { route: document.body.dataset.route, hash: location.hash, inView: box.top >= header && box.top < innerHeight,
           focus: document.activeElement.textContent };
       })()`);
       assert.deepEqual(s, { route: "plugin", hash: "#/plugin/moon-notes", inView: true, focus: "Install it from the app" });
