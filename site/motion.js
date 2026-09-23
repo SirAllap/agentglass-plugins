@@ -22,13 +22,20 @@ const SVG = "http://www.w3.org/2000/svg";
    The contact in the header mark and everything in the hero's pass is SMIL,
    which CSS cannot stop. Parked at the start of its path the contact sits
    where the still logo draws it. */
+let passInView = true;
 function orbit() {
   for (const svg of document.querySelectorAll("svg.mk, .pass svg")) {
-    if (calm.matches) { svg.pauseAnimations(); svg.setCurrentTime(0); } else svg.unpauseAnimations();
+    if (calm.matches) { svg.pauseAnimations(); svg.setCurrentTime(0); }
+    /* The pass rests while it is scrolled away, and picks up where it was. */
+    else if (!passInView && svg.closest(".pass")) svg.pauseAnimations();
+    else svg.unpauseAnimations();
   }
 }
 orbit();
 calm.addEventListener("change", orbit);
+if ("IntersectionObserver" in window && $(".pass")) {
+  new IntersectionObserver(([e]) => { passInView = e.isIntersecting; orbit(); }).observe($(".pass"));
+}
 
 /**
  * A satellite on the pass for each listed plugin, spaced evenly along the
@@ -209,7 +216,9 @@ if (!calm.matches) requestAnimationFrame(() => {
     return { s, orb };
   });
 
-  /* The satellite: the mark, crossing the page on a slow wave as it scrolls. */
+  /* The satellite: the mark, crossing the page on a slow wave as it scrolls.
+     The landing's page is open; this one is a column of cards, so the
+     satellite keeps to the margins beside it and never parks behind one. */
   const sat = $(".sat");
   const home = $("#home");
   const fly = () => {
@@ -217,11 +226,13 @@ if (!calm.matches) requestAnimationFrame(() => {
     const start = innerHeight * 1.2;
     const run = Math.max(1, document.documentElement.scrollHeight - innerHeight - start);
     const p = (scrollY - start) / run;
-    const on = !home.hidden && p > 0 && p < 1;
+    const margin = (innerWidth - 1000) / 2 - 24;
+    const on = !home.hidden && p > 0 && p < 1 && margin >= 150;
     sat.classList.toggle("on", on);
     if (!on) return;
     const wave = Math.sin(p * Math.PI * 1.5);
-    const x = innerWidth / 2 + wave * (innerWidth * 0.42) - 66;
+    const reach = (margin - 132) * Math.abs(wave);
+    const x = wave >= 0 ? innerWidth - margin + reach : margin - 132 - reach;
     const y = innerHeight * (0.24 + 0.52 * (0.5 + 0.5 * Math.cos(p * Math.PI * 2.2)));
     sat.style.transform = "translate3d(" + Math.round(x) + "px," + Math.round(y) + "px,0)";
   };

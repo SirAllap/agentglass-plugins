@@ -189,6 +189,9 @@ test("backticks become code, and a cut-off description says so", () => {
   assert.equal(p.childNodes[1].textContent, "read");
   assert.ok(box.textContent.endsWith("mid…"));
   assert.equal(prose(doc, "Ends well.", "d").textContent, "Ends well.");
+  /* Cut after most of a sentence-long text: the whole sentences stay. */
+  assert.equal(prose(doc, "It reads every pull request on this machine and never posts a word. It costs what", "d").textContent,
+    "It reads every pull request on this machine and never posts a word.");
 });
 
 test("licences are named from the file, and an unknown one is not guessed", () => {

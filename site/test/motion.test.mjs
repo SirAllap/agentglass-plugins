@@ -163,6 +163,26 @@ test("the page moves the way the landing does, and not at all when asked", { ski
       assert.deepEqual(s, { focus: "detail-title", title: "moon notes · agentglass plugins", route: "plugin" });
       await p.close();
     });
+
+    await t.test("'How to install' goes down the plugin's page and stays on it", async () => {
+      const p = await b.open(`${base}#/plugin/moon-notes`, { reduced: true });
+      const s = await p.ask(`(async () => {
+        document.querySelector(".pl-big").click();
+        await new Promise((r) => setTimeout(r, 300));
+        const box = document.getElementById("install").getBoundingClientRect();
+        return { route: document.body.dataset.route, hash: location.hash, inView: box.top >= 0 && box.top < innerHeight,
+          focus: document.activeElement.textContent };
+      })()`);
+      assert.deepEqual(s, { route: "plugin", hash: "#/plugin/moon-notes", inView: true, focus: "Install it from the app" });
+      await p.close();
+    });
+
+    await t.test("a plugin that is not listed offers the ones that are", async () => {
+      const p = await b.open(`${base}#/plugin/nowhere`);
+      const s = await p.ask(`({ h: document.querySelector("#view h1").textContent, cards: document.querySelectorAll("#view .pl-card").length })`);
+      assert.deepEqual(s, { h: "No such plugin", cards: 3 });
+      await p.close();
+    });
   } finally {
     b.quit();
     server.close();

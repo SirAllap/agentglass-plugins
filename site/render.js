@@ -163,7 +163,12 @@ export function outLink(doc, href, text, cls) {
 export function prose(doc, text, cls) {
   const box = el(doc, "div", cls);
   let body = str(text, 4000).trim();
-  if (body && !/[.!?…)"'”’`:]$/.test(body)) body += "…";
+  /* A description cut short ends on its last whole sentence when that keeps
+     most of it, and on an ellipsis otherwise, never mid-word. */
+  if (body && !/[.!?…)"'”’`:]$/.test(body)) {
+    const whole = body.match(/^[\s\S]*[.!?…](?=\s)/);
+    body = whole && whole[0].length >= body.length * 0.6 ? whole[0] : body + "…";
+  }
   for (const para of body.split(/\n\s*\n/)) {
     if (!para.trim()) continue;
     const p = el(doc, "p");
@@ -301,7 +306,11 @@ function fact(doc, dl, key, value) {
 /** A value with a button that copies it. */
 export function copyable(doc, value, label) {
   const w = el(doc, "span", "copyable");
-  w.append(el(doc, "code", null, value));
+  /* The value is read once, from a hidden copy: the shown one may be settling
+     into place (app.js) when a screen reader reaches it. */
+  const shown = el(doc, "code", null, value);
+  shown.setAttribute("aria-hidden", "true");
+  w.append(el(doc, "span", "vh", value), shown);
   const b = el(doc, "button", "copy");
   b.type = "button";
   b.dataset.copy = value;
@@ -343,14 +352,16 @@ export function detail(doc, e) {
 
   const badges = el(doc, "div", "pl-badges");
   if (e.scope) badges.append(el(doc, "span", "pl-badge " + tone(e), SCOPE[e.scope].label.toLowerCase()));
-  if (e.draws.length) badges.append(el(doc, "span", "pl-badge", `${e.draws.length} ${e.draws.length === 1 ? "surface" : "surfaces"}`));
+  if (e.draws.length) badges.append(el(doc, "span", "pl-badge", `draws in ${e.draws.length} ${e.draws.length === 1 ? "place" : "places"}`));
   if (e.ref && e.sha256) badges.append(el(doc, "span", "pl-badge s", `pinned ${shortRef(e)}`));
   if (e.verified) badges.append(el(doc, "span", "pl-badge s", "verified"));
   if (badges.childNodes.length) pitch.append(badges);
   pitch.append(prose(doc, e.description, "pl-lead"));
 
   const cta = el(doc, "div", "pl-cta");
-  const go = el(doc, "a", "pl-big", "Install from the app");
+  /* An anchor within this page: app.js scrolls to it without leaving the
+     plugin's route. */
+  const go = el(doc, "a", "pl-big", "How to install ↓");
   go.href = "#install";
   cta.append(go);
   if (e.repo) {
@@ -397,9 +408,14 @@ export function detail(doc, e) {
     img.decoding = "async";
     img.referrerPolicy = "no-referrer";
     img.addEventListener("error", () => stage.remove(), { once: true });
-    const zoom = el(doc, "span", "pl-zoom", "Click to enlarge");
-    zoom.prepend(icon(doc, "zoom", "ic-s"));
+    const zoom = el(doc, "span", "pl-zoom");
+    zoom.append(icon(doc, "zoom", "ic-s"), el(doc, "span", null, "Enlarge"));
     stage.append(img, zoom);
+    root.append(stage);
+  } else {
+    /* No screenshot: the manifest the card showed, full size. */
+    const stage = el(doc, "div", "pl-stage pl-stage-manifest");
+    stage.append(mark(doc, e));
     root.append(stage);
   }
 
@@ -426,7 +442,9 @@ export function detail(doc, e) {
 
   const inst = el(doc, "section", "pl-sec install");
   inst.id = "install";
-  inst.append(el(doc, "h2", "pl-sec-h", "Install it from the app"));
+  const ih = el(doc, "h2", "pl-sec-h", "Install it from the app");
+  ih.tabIndex = -1;
+  inst.append(ih);
   const steps = el(doc, "div", "steps");
   const step = (title, ...rest) => {
     const box = el(doc, "div");

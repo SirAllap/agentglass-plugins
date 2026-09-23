@@ -41,7 +41,7 @@ test("the market changes one landing token, --dim2, and only to lift text to AA"
   const ours = tokens(read("styles.css"));
   const touched = Object.keys(ours).filter((k) => k in LANDING_TOKENS);
   assert.deepEqual(touched, ["--dim2"]);
-  assert.equal(ours["--dim2"], "#7a7794");
+  assert.equal(ours["--dim2"], "#807d9a");
 });
 
 test("the favicon is the official mark's small cut", () => {

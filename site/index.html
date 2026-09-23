@@ -155,10 +155,12 @@
         <div class="pl-none" id="empty" hidden>
           <p id="empty-what"></p>
           <button class="pl-more" id="clear" type="button">Clear the search and filters</button>
+          <p class="pl-none-more">Not listed? Anybody can install a plugin from its git URL. <a href="#list-yours">List yours</a></p>
         </div>
         <div class="pl-none err" id="error" hidden role="alert">
           <p id="error-what"></p>
           <button class="pl-more" id="retry" type="button">Try again</button>
+          <p class="pl-none-more">Or read the catalogue as it is: <a href="plugins.json">plugins.json</a></p>
         </div>
       </div>
       <aside class="pl-aside audit" aria-labelledby="audit-title">
@@ -177,11 +179,18 @@
       <h2 id="list-title">List your plugin at a commit anybody can read.</h2>
       <p class="sub">You do not need to be listed to be installed: anybody can install a plugin from its git URL today. The catalogue is for being found, and for being installed at a commit somebody could read.</p>
       <div class="list-grid">
+        <div class="list-main">
         <div class="steps">
           <div><div><b>Ship the repository.</b><span>Public, with <code>plugin.json</code> at its root, a README that says what it does and what leaves the machine, and a LICENSE. A wide <code>preview.png</code> at the root becomes your card's picture.</span></div></div>
           <div><div><b>Validate it.</b><span><code>agentglass-plugin validate .</code> applies the rules the app installs by.</span></div></div>
           <div><div><b>Open the listing issue.</b><span>A check clones the repository, validates it, scans the source and writes what it found on the issue.</span></div></div>
           <div><div><b>A maintainer decides.</b><span>On approval, a pull request adds your entry, pinned to the commit the check read.</span></div></div>
+        </div>
+        <div class="pick">
+          <div class="who"><b>Ready to be listed?</b><span>A push after you are listed changes nothing for anybody who installs from here. A new version is a new submission.</span></div>
+          <a class="grab" href="https://github.com/SirAllap/agentglass-plugins/issues/new?template=plugin_submission.yml" rel="noopener noreferrer">Open the listing issue</a>
+          <span class="alt">or <a href="https://github.com/SirAllap/agentglass-plugins#being-listed" rel="noopener noreferrer">read the rules first</a></span>
+        </div>
         </div>
         <div class="list-side">
         <figure class="win entry" id="entry">
@@ -205,11 +214,6 @@
       </div>
         </div>
       </div>
-      <div class="pick">
-        <div class="who"><b>Ready to be listed?</b><span>A push after you are listed changes nothing for anybody who installs from here. A new version is a new submission.</span></div>
-        <a class="grab" href="https://github.com/SirAllap/agentglass-plugins/issues/new?template=plugin_submission.yml" rel="noopener noreferrer">Open the listing issue</a>
-        <span class="alt">or <a href="https://github.com/SirAllap/agentglass-plugins#being-listed" rel="noopener noreferrer">read the rules first</a></span>
-      </div>
     </div>
   </section>
 </div>
@@ -222,9 +226,9 @@
   <div class="me2"><span class="lock2"><svg class="mark" viewBox="0 0 64 64" width="20" height="20" aria-hidden="true"><path d="M14.1 54.9 A29 8.5 -52 0 1 49.9 9.1" fill="none" stroke="currentColor" stroke-opacity=".45" stroke-width="6" stroke-linecap="round"/><circle cx="30" cy="34" r="15" fill="currentColor"/><circle cx="30" cy="34" r="15" fill="#fff" fill-opacity=".34"/><path d="M30 19 A15 15 0 0 1 30 49 A21.0 21.0 0 0 0 30 19 Z" fill="#1b0b38" fill-opacity=".52"/><path d="M49.9 9.1 A29 8.5 -52 0 1 14.1 54.9" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><circle cx="50.7" cy="10.4" r="6" fill="var(--success)"/></svg><b>agentglass</b></span>
    <p>The catalogue <a href="https://github.com/SirAllap/agentglass">agentglass</a> installs plugins from. This page is static: no cookies, no analytics, no scripts from anywhere else.</p>
   </div>
-  <div><h4>Market</h4><nav aria-label="Market"><a href="#browse">Plugins</a><a href="#list-yours">List yours</a><a href="plugins.json">plugins.json</a><a href="https://github.com/SirAllap/agentglass-plugins" rel="noopener noreferrer">Catalogue source</a></nav></div>
-  <div><h4>agentglass</h4><nav aria-label="agentglass"><a href="https://sirallap.github.io/agentglass/">Home</a><a href="https://sirallap.github.io/agentglass/#/guide">Guide</a><a href="https://sirallap.github.io/agentglass/#/faq">Questions</a><a href="https://sirallap.github.io/agentglass/#/#get">Download</a></nav></div>
-  <div><h4>Docs</h4><nav aria-label="Docs"><a href="https://github.com/SirAllap/agentglass/blob/main/docs/PLUGINS.md">Plugins</a><a href="https://github.com/SirAllap/agentglass/blob/main/SECURITY.md">Security</a><a href="https://github.com/SirAllap/agentglass">Source</a></nav></div>
+  <div><h4 role="heading" aria-level="2">Market</h4><nav aria-label="Market"><a href="#browse">Plugins</a><a href="#list-yours">List yours</a><a href="plugins.json">plugins.json</a><a href="https://github.com/SirAllap/agentglass-plugins" rel="noopener noreferrer">Catalogue source</a></nav></div>
+  <div><h4 role="heading" aria-level="2">agentglass</h4><nav aria-label="agentglass"><a href="https://sirallap.github.io/agentglass/">Home</a><a href="https://sirallap.github.io/agentglass/#/guide">Guide</a><a href="https://sirallap.github.io/agentglass/#/faq">Questions</a><a href="https://sirallap.github.io/agentglass/#/#get">Download</a></nav></div>
+  <div><h4 role="heading" aria-level="2">Docs</h4><nav aria-label="Docs"><a href="https://github.com/SirAllap/agentglass/blob/main/docs/PLUGINS.md">Plugins</a><a href="https://github.com/SirAllap/agentglass/blob/main/SECURITY.md">Security</a><a href="https://github.com/SirAllap/agentglass">Source</a></nav></div>
  </div>
  <div class="fbar"><span>agentglass is MIT &copy; 2026 SirAllap</span><span>Mark and artwork CC BY 4.0 &mdash; <a href="https://github.com/SirAllap/agentglass/blob/main/NOTICE.md">NOTICE.md</a></span><span class="end"><a href="https://github.com/SirAllap/agentglass/blob/main/SECURITY.md">Report a vulnerability</a></span></div>
 </footer>

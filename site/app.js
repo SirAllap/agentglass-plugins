@@ -65,7 +65,9 @@ function renderChips() {
   box.textContent = "";
   const counts = new Map();
   for (const e of state.all) for (const c of e.categories) counts.set(c, (counts.get(c) || 0) + 1);
-  const cats = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  /* A category that names a single plugin narrows nothing a search would
+     not: chips appear once a category holds two. */
+  const cats = [...counts].filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
   const LIMIT = 8;
   const shown = state.showAllCats ? cats : cats.slice(0, LIMIT);
   if (state.cat && !shown.some(([c]) => c === state.cat)) shown.push([state.cat, counts.get(state.cat) || 0]);
@@ -77,6 +79,7 @@ function renderChips() {
     if (n != null) b.append(el(document, "span", "pl-chip-n", String(n)));
     box.append(b);
   };
+  box.hidden = cats.length === 0;
   chip("", "All", state.all.length);
   for (const [c, n] of shown) chip(c, c, n);
   if (cats.length > LIMIT) {
@@ -120,28 +123,34 @@ function renderSeal() {
   $("#seal-title").textContent = e.title;
   $("#seal-title").href = "#/plugin/" + encodeURIComponent(e.id);
   $("#seal-ref").textContent = e.ref;
-  const hash = $("#seal-sha");
+  if (e.added) $("#seal-cap").textContent = `plugins.json · listed ${e.added}`;
   $("#seal-sha-real").textContent = e.sha256;
-  if (calm.matches) { hash.textContent = e.sha256; seal.classList.add("sealed"); return; }
-  /* The one moment on the page: the hash settles, left to right, into the
-     value the app will check the files against. */
+  settle($("#seal-sha"), e.sha256, seal, () => seal.classList.add("sealed"));
+}
+
+/**
+ * The page's proof moment: a hash settles, left to right, into the value the
+ * app will check the files against. Played once, when `watch` is on screen
+ * (on a phone the seal sits below the fold, and a moment nobody sees is not
+ * a moment); drawn still under reduced motion. `node` is hidden from screen
+ * readers, which read the value from a hidden copy.
+ */
+function settle(node, value, watch, done = () => {}) {
+  if (calm.matches) { node.textContent = value; done(); return; }
   const hex = "0123456789abcdef";
   let i = 0;
   const tick = () => {
-    i = Math.min(64, i + 2);
-    let s = e.sha256.slice(0, i);
-    for (let k = i; k < 64; k++) s += hex[(Math.random() * 16) | 0];
-    hash.textContent = s;
-    if (i < 64) setTimeout(tick, 22);
-    else seal.classList.add("sealed");
+    i = Math.min(value.length, i + 2);
+    let s = value.slice(0, i);
+    for (let k = i; k < value.length; k++) s += hex[(Math.random() * 16) | 0];
+    node.textContent = s;
+    if (i < value.length) setTimeout(tick, 22); else done();
   };
-  hash.textContent = "0".repeat(64);
-  /* Played when the seal is on screen: on a phone it sits below the fold,
-     and a moment nobody sees is not a moment. */
+  node.textContent = "0".repeat(value.length);
   if (!("IntersectionObserver" in window)) { setTimeout(tick, 380); return; }
   new IntersectionObserver(([x], o) => {
     if (x.isIntersecting) { o.disconnect(); setTimeout(tick, 500); }
-  }, { threshold: 0.6 }).observe(seal);
+  }, { threshold: 0.6 }).observe(watch);
 }
 
 /* ── the lightbox: the picture at actual size, one way out ───────── */
@@ -212,12 +221,24 @@ function showPlugin(id) {
     w.append(detail(document, e));
     fillLicences(w, [e]);
     document.title = `${e.title} · agentglass plugins`;
+    /* The proof moment again, where the decision is made: the hash on this
+       page settles into the value the market checks. */
+    const row = [...w.querySelectorAll(".pl-fact")].find((r) => r.querySelector("dt")?.textContent === "sha256");
+    const shown = row && row.querySelector("code[aria-hidden]");
+    if (shown && e.sha256) settle(shown, e.sha256, row);
   } else {
     const box = el(document, "div", "pl-missing");
-    box.append(el(document, "h1", null, "No such plugin"), el(document, "p", null, state.all.length ? "It is not in the catalogue, or it was taken out." : "The catalogue did not load."));
+    box.append(el(document, "h1", null, "No such plugin"), el(document, "p", null, state.all.length ? "It is not in the catalogue, or it was taken out. These are:" : "The catalogue did not load."));
     const back = el(document, "a", "pl-ghost", "All plugins");
     back.href = "#/";
     box.append(back);
+    /* Somewhere to go instead: what the catalogue does hold. */
+    if (state.all.length) {
+      const grid = el(document, "div", "pl-grid");
+      for (const x of sorted(state.all).slice(0, 4)) grid.append(card(document, x, "#/plugin/" + encodeURIComponent(x.id)));
+      fillLicences(grid, state.all);
+      box.append(grid);
+    }
     w.append(box);
     document.title = "Not found · agentglass plugins";
   }
@@ -226,7 +247,7 @@ function showPlugin(id) {
   view.hidden = false;
   document.body.dataset.route = "plugin";
   window.scrollTo({ top: 0, behavior: "instant" });
-  tag(view.querySelector(".pl-stage img"), "vt-shot");
+  tag(view.querySelector(".pl-stage img, .pl-stage .pl-manifest"), "vt-shot");
   tag(view.querySelector("h1"), "vt-title");
   const h = view.querySelector("h1");
   if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); }
@@ -254,7 +275,7 @@ function showHome() {
     $("#browse").scrollIntoView({ behavior: "instant" });
     q.focus({ preventScroll: true });
   } else if (target) {
-    tag(target.querySelector(".pl-shot img"), "vt-shot");
+    tag(target.querySelector(".pl-shot img, .pl-shot .pl-manifest"), "vt-shot");
     tag(target.querySelector(".pl-name"), "vt-title");
     /* Twice: the browser's own Back restores the old scroll position after
        this event, and on the way resets the focus to the page. */
@@ -280,7 +301,7 @@ function route(ev) {
     try { id = decodeURIComponent(m[1]); } catch { /* a malformed hash is no plugin */ }
     const from = $("#home").hidden ? null : cardOf(id);
     withTransition(() => showPlugin(id), () => {
-      tag(from && from.querySelector(".pl-shot img"), "vt-shot");
+      tag(from && from.querySelector(".pl-shot img, .pl-shot .pl-manifest"), "vt-shot");
       tag(from && from.querySelector(".pl-name"), "vt-title");
     }, animate);
     lastCard = id;
@@ -318,11 +339,13 @@ $("#clear").addEventListener("click", () => {
   renderShelf({ animate: true });
   q.focus();
 });
-/* The hero's prompt goes to the shelf and puts the cursor in its search. */
+/* The hero's prompt goes to the shelf and, with a keyboard at hand, puts the
+   cursor in its search. On a touch screen a focused field would raise the
+   keyboard over the cards the visitor came to see. */
 $("#hero-go").addEventListener("click", (ev) => {
   ev.preventDefault();
   $("#browse").scrollIntoView({ behavior: calm.matches ? "instant" : "smooth" });
-  q.focus({ preventScroll: true });
+  if (matchMedia("(pointer: fine)").matches) q.focus({ preventScroll: true });
 });
 /* Ctrl+K (Cmd+K on a Mac) goes to the search. Not a bare "/": a one-key
    shortcut fires on every "/" that speech input types (WCAG 2.1.4). */
@@ -347,6 +370,19 @@ const selectValue = (b) => {
   say("Copy failed. The value is selected: copy it with your keyboard.");
 };
 document.addEventListener("click", (ev) => {
+  /* A link to a part of a plugin's own page ("How to install") scrolls there
+     and keeps the plugin's route: as a hash of its own it would read as
+     "leave for the shelf". */
+  const jump = ev.target.closest && ev.target.closest('#view a[href^="#"]:not([href^="#/"])');
+  if (jump) {
+    const to = document.getElementById(jump.getAttribute("href").slice(1));
+    if (to) {
+      ev.preventDefault();
+      to.scrollIntoView({ behavior: calm.matches ? "instant" : "smooth", block: "start" });
+      (to.querySelector("[tabindex='-1']") || to).focus({ preventScroll: true });
+    }
+    return;
+  }
   const zoom = ev.target.closest && ev.target.closest("button.pl-stage");
   if (zoom) { lightbox(zoom.dataset.zoom, zoom.querySelector("img").alt, zoom); return; }
   const b = ev.target.closest && ev.target.closest("button.copy");
@@ -386,7 +422,7 @@ async function load() {
     const pinned = state.all.filter((e) => e.ref && e.sha256).length;
     const n = state.all.length;
     $("#hero-facts").textContent = n === 0 ? "Nothing is listed yet."
-      : pinned === n ? `All ${n} ${n === 1 ? "listing is" : "listings are"} pinned to a commit and a content hash.`
+      : pinned === n ? `${n === 1 ? "The one listing is" : n === 2 ? "Both listings are" : `All ${n} listings are`} pinned to a commit and a content hash.`
       : `${pinned} of ${n} listings are pinned to a commit and a content hash.`;
     cards.clear();
     for (const e of state.all) cards.set(e.id, card(document, e, "#/plugin/" + encodeURIComponent(e.id)));
@@ -396,7 +432,7 @@ async function load() {
     renderSeal();
     satellites(n);
   } catch (err) {
-    fail(`The catalogue did not load: ${err && err.message ? err.message : "unknown error"}.`);
+    fail(`The catalogue did not load (${err && err.message ? err.message : "unknown error"}). Check your connection and try again.`);
   } finally {
     $("#grid").removeAttribute("aria-busy");
   }
