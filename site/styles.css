@@ -41,12 +41,6 @@
  animation:sweep 7s cubic-bezier(.55,0,.45,1) infinite;animation-timeline:auto;animation-range:normal}
 .hd-nav a.here{color:var(--txt)}
 
-/* The variant without a header bar (?variant=noheader, set by variant.js):
-   the lockup and the links sit at the top of the page, in its flow, and
-   scroll away with it. No bar, no rule; the mark still orbits. */
-.noheader .hd{position:absolute;top:10px}
-.noheader .hd-bar,.noheader .hd-rule,.noheader .hd-sweep{display:none}
-
 /* ── page furniture ───────────────────────────────────────────── */
 .sprite{position:absolute;width:0;height:0;overflow:hidden}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
@@ -62,7 +56,6 @@ code{font-family:var(--mono)}
 ::selection{background:rgba(167,139,250,.32)}
 input{caret-color:var(--run)}
 html{scrollbar-color:rgba(167,139,250,.28) var(--void);scroll-padding-top:calc(76px + var(--safe))}
-.noheader{scroll-padding-top:16px}
 /* The page's scroll padding already clears the header; the landing's own
    section margin would add a second 84px on top of it. */
 .sec{scroll-margin-top:0}

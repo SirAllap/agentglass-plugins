@@ -69,7 +69,6 @@ and `site/styles.css` holds only what the market adds. Dark only, as the
 landing is. To follow a change on the landing, copy the same rules again;
 `site/test/design.test.mjs` holds the copy to the landing's token values.
 Motion (`site/motion.js`) stops entirely under `prefers-reduced-motion`.
-`?variant=noheader` shows the same page without its header bar.
 
 Every field of an entry is text on that page. `site/render.js` is the only
 file that turns an entry into elements and it never writes markup; the page's

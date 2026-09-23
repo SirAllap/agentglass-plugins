@@ -2,7 +2,7 @@
  * The page as a visitor meets it, in a real browser: the header already
  * formed with its mark still orbiting, the hero's pass carrying a satellite
  * per plugin, nothing moving at all under prefers-reduced-motion, the
- * variant without a header bar, and no sideways scroll on a phone.
+ * and no sideways scroll on a phone.
  *
  * Headless Chrome is driven over the DevTools protocol, so the test can set
  * the viewport and the reduced-motion preference. It never leaves this
@@ -161,17 +161,8 @@ test("the page moves the way the landing does, and not at all when asked", { ski
       await p.close();
     });
 
-    await t.test("the variant without a header bar keeps the lockup in the page", async () => {
-      const p = await b.open(base + "?variant=noheader");
-      const s = await p.ask(`({ hd: getComputedStyle(document.querySelector(".hd")).position,
-        bar: getComputedStyle(document.querySelector(".hd-bar")).display,
-        mark: getComputedStyle(document.querySelector(".hd-lock")).display })`);
-      assert.deepEqual(s, { hd: "absolute", bar: "none", mark: "flex" });
-      await p.close();
-    });
-
     await t.test("a phone never scrolls sideways, on the shelf or a plugin's page", async () => {
-      for (const url of [base, base + "?variant=noheader", `${base}#/plugin/orbit-lint`]) {
+      for (const url of [base, `${base}#/plugin/orbit-lint`]) {
         const p = await b.open(url, { w: 390, h: 844, mobile: true });
         const s = await p.ask(`({ sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth,
           /* Sections clip what overflows them, so the page width alone cannot
