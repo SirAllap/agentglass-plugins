@@ -62,11 +62,21 @@ same file the app reads. There is no build step and nothing from another
 origin except a plugin's preview image and its `LICENSE`, both read from
 `raw.githubusercontent.com` at the listed commit.
 
+It wears the agentglass landing page's own design system: `site/landing.css`
+is the landing's CSS copied verbatim (its tokens, the header lockup with the
+orbiting mark, the section rhythm, the footer and the `pl-*` plugin parts),
+and `site/styles.css` holds only what the market adds. Dark only, as the
+landing is. To follow a change on the landing, copy the same rules again;
+`site/test/design.test.mjs` holds the copy to the landing's token values.
+Motion (`site/motion.js`) stops entirely under `prefers-reduced-motion`.
+`?variant=noheader` shows the same page without its header bar.
+
 Every field of an entry is text on that page. `site/render.js` is the only
 file that turns an entry into elements and it never writes markup; the page's
 Content Security Policy requires Trusted Types with no policy, so a string
 assigned as markup throws instead of parsing. `node --test site/test/` feeds
-it hostile entries and fails if anything runs.
+it hostile entries and fails if anything runs, and drives headless Chrome to
+check the motion, the reduced-motion page and the phone width.
 
     scripts/build-site.sh            # assembles _site/, as Pages does
     python3 -m http.server -d _site  # then open http://localhost:8000
