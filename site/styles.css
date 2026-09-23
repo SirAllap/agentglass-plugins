@@ -22,6 +22,20 @@
  --glow:rgba(167,139,250,.16);
 }
 
+/* ── the header, formed ───────────────────────────────────────────
+   On the landing the market's planet flies into the header as the page
+   scrolls, and the header builds itself once it has landed. Here it is
+   already home: every part of that build held at its end. The mark keeps its
+   orbit, the caret its blink, the rule its sweep. */
+.hd-bar,.hd-nav{opacity:1;animation:none;transform:none}
+.hd-bar{height:calc(62px + var(--safe))}
+.hd-lock .mk,.hd-lock .lk-cue,.hd-lock .lk-pl,.hd-lock .lk-wi,.hd-lock .lk-d1,.hd-lock .lk-d2,.hd-lock .lk-d3{
+ animation:none;opacity:1;transform:none;clip-path:none}
+.hd-lock .lk-car{animation:blink 1.15s steps(1) infinite;transform:none}
+.hd-rule{animation:none;transform:scaleX(1)}
+.hd-sweep{opacity:1;top:calc(61px + var(--safe));
+ animation:sweep 7s cubic-bezier(.55,0,.45,1) infinite;animation-timeline:auto;animation-range:normal}
+
 /* ── page furniture ───────────────────────────────────────────── */
 .sprite{position:absolute;width:0;height:0;overflow:hidden}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
