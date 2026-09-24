@@ -23,6 +23,7 @@ permissions: {}
 jobs:
   catalogue:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
       pull-requests: read
@@ -70,6 +71,7 @@ jobs:
   # no secret, and a token that can only read.
   site:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
