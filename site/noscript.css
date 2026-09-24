@@ -1,0 +1,6 @@
+/* Loaded only when scripting is off (see index.html). The hero's reveals are
+   gated on classes the script adds; this undoes the gates, as the landing's
+   own <noscript> block does. */
+.kick,.win,.oneline,.cta{opacity:1!important;transform:none!important}
+.oneline i{opacity:1!important;transform:none!important;filter:none!important}
+.pl-card.ghost{display:none}
