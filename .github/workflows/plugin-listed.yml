@@ -1,0 +1,50 @@
+# Say on the submission that its listing has merged. Nothing else.
+#
+# The approval opens a pull request and does not close the issue: the person
+# who approved looks at the listing on the site and closes it when it is right.
+# What the issue lacked was any word that the merge happened, and at which
+# commit. This comments once, from the marker the approval left in the pull
+# request, and never closes, labels or edits anything.
+#
+# It reads the pull request's payload and the issue's labels, and runs one
+# script from the default branch, never the pull request's. Only a merged pull
+# request of this repository's own, opened by a bot, on a `list-` branch.
+name: Plugin listed
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions: {}
+
+jobs:
+  say:
+    if: |
+      github.event.pull_request.merged == true
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && github.event.pull_request.user.type == 'Bot'
+      && startsWith(github.event.pull_request.head.ref, 'list-')
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      # The default branch, not the pull request's merge ref that a checkout
+      # takes on this event, and without credentials.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Say it on the issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        run: |
+          set -euo pipefail
+          n=$(python3 scripts/gate.py listed-issue) || n=""
+          [ -n "$n" ] || { echo "no listing marker; saying nothing"; exit 0; }
+          ISSUE_LABELS=$(gh api "repos/$REPO/issues/$n" --jq '[.labels[].name] | join(",")')
+          out=$(ISSUE_LABELS="$ISSUE_LABELS" python3 scripts/gate.py listed) || { echo "not a submission this can speak on; saying nothing"; exit 0; }
+          gh issue comment "$(printf '%s' "$out" | jq -r .issue)" --repo "$REPO" --body "$(printf '%s' "$out" | jq -r .body)"

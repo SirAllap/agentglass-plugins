@@ -25,6 +25,21 @@
 # that tree, computed by the same walk the app does, and the app refuses an
 # install that hashes to anything else. A new version is a new submission.
 #
+# A SCAN THAT FOUND SOMETHING NEEDS A SECOND LABEL. When the scan sees a
+# pattern that reaches past a plugin's own job, the submission carries
+# `security-review-required`, and `approved for listing` alone lists nothing:
+# somebody with write access, live, applies `security-reviewed` after the
+# latest report was written. This job never applies it, and either label may
+# come second. What decides is scripts/gate.py, not the label alone: the
+# report's marker and a fresh scan of the commit being listed ask for the
+# review too, so taking the requirement label off does not remove the need.
+#
+# ONE APPROVAL IS ONE RUN. A rerun (`run_attempt` above 1) replays a label
+# event after the issue may have changed, so it lists nothing; the label is
+# applied again instead. What is listed is the commit the latest report
+# validated, fetched by id, and a repository that has moved lists nothing
+# until the check has read the new commit and a person has read that report.
+#
 # And nothing here reports a check. The branch is pushed with a token that
 # triggers CI, CI answers `build` and `catalogue` from the pull request's own
 # content, and those are what auto-merge waits on — not a status this job
@@ -43,7 +58,14 @@ concurrency:
 
 jobs:
   list:
-    if: github.event.label.name == 'approved for listing'
+    # Either label starts a run, so the order a maintainer applies the two in
+    # does not matter; `security-reviewed` only counts once the issue also
+    # carries the approval. Once: a rerun is refused here, before any step.
+    if: |
+      github.run_attempt == 1
+      && (github.event.label.name == 'approved for listing'
+          || (github.event.label.name == 'security-reviewed'
+              && contains(github.event.issue.labels.*.name, 'approved for listing')))
     runs-on: ubuntu-latest
     # Every git here reads a stranger's repository: it asks nobody for a
     # password, and it fetches nothing through LFS, whose host a plugin's own
@@ -232,9 +254,36 @@ jobs:
           # is what gets listed, so it is scanned again and the outcome goes
           # into the pull request next to the commit it describes.
           python3 scripts/plugin-baseline.py /tmp/plugin > /tmp/baseline.json || true
+          echo "review=$(python3 scripts/gate.py review /tmp/baseline.json)" >> "$GITHUB_OUTPUT"
           echo "repo=$repo" >> "$GITHUB_OUTPUT"
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
           echo "name=$(python3 -c 'import json;print(json.load(open("/tmp/validate.json"))["name"])')" >> "$GITHUB_OUTPUT"
+
+      # A scan that found something a plugin has no business doing is read by
+      # a person before it is listed, and the person is somebody with write
+      # access NOW, not when they clicked. Bots never count and this job never
+      # applies the label. See scripts/gate.py for the whole rule.
+      - name: If the scan asks for a person's read, was there one?
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          ISSUE: ${{ github.event.issue.number }}
+          COMMENTS: /tmp/comments.jsonl
+          EVENTS: /tmp/events.jsonl
+          PERMS: /tmp/perms.json
+          REFUSED: /tmp/refused
+          FRESH_REVIEW: ${{ steps.entry.outputs.review }}
+        run: |
+          set -euo pipefail
+          LABELS=$(gh api "repos/$REPO/issues/$ISSUE" --jq '[.labels[].name] | join(",")')
+          : > /tmp/perms.lines
+          while read -r actor; do
+            [[ "$actor" =~ ^[A-Za-z0-9-]+$ ]] || continue
+            level=$(gh api "repos/$REPO/collaborators/$actor/permission" --jq '.permission' 2>/dev/null || echo none)
+            jq -n --arg a "$actor" --arg l "$level" '{($a): $l}' >> /tmp/perms.lines
+          done < <(jq -r 'select(.label == "security-reviewed" or .label == "approved for listing") | .actor' "$EVENTS" | sort -u)
+          jq -s 'add // {}' /tmp/perms.lines > "$PERMS"
+          LABELS="$LABELS" python3 scripts/gate.py approval
 
       - name: Write the entry
         id: write
@@ -296,6 +345,11 @@ jobs:
           # else would swap that entry's source for its own — a hijack in the
           # shape of an update. The same repository may list a new version.
           listed = next((p for p in cat["plugins"] if p["id"] == v["name"]), None)
+          # Both labels can be in place when a run starts, one run each: the
+          # second finds the first's entry already at this commit and has
+          # nothing to add.
+          if listed and listed["source"].get("ref") == sha and listed.get("sha256") == h["sha256"]:
+              refuse(f"{v['name']!r} is already listed at {sha[:12]}")
           if listed and listed["source"]["url"].rstrip("/").removesuffix(".git").casefold() != env["REPO_URL"].casefold():
               refuse(f"{v['name']!r} is already listed from {listed['source']['url']}; a different repository cannot take its place")
           entry = {
@@ -376,6 +430,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           branch="list-$NAME-$ISSUE"
+          # Both labels can start a run before the first listing merges: the
+          # second finds the branch taken and says so, rather than failing on
+          # a push that is not a fast-forward.
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$branch" >/dev/null 2>&1; then
+            echo "a listing branch for this submission is already open; merge or delete it, then approve again" > /tmp/refused
+            echo "::error::$branch already exists"; exit 1
+          fi
           git checkout -b "$branch"
           git add plugins.json
           git commit -m "catalogue: list $NAME
@@ -403,13 +464,18 @@ jobs:
           # lets a bot approve reviews, and a catalogue whose only reviewer is
           # a person does not hand that away to save a click. So the branch is
           # pushed either way and the link is handed to the maintainer.
-          body="Closes #$ISSUE
+          # NOT a closing keyword: the submission stays open until a person has looked
+          # at the listing, and the bot never closes it. What it does say, after
+          # the merge, is in plugin-listed.yml, read from the marker below.
+          body="From #$ISSUE.
 
           Adds \`$NAME\` to \`plugins.json\` from https://github.com/$SOURCE.
 
           $(cat /tmp/pr-body.md)
 
-          Read the submission check on the issue before merging — it says what installing this costs and which lines are worth an eye."
+          Read the submission check on the issue before merging — it says what installing this costs and which lines are worth an eye.
+
+          <!-- agentglass-listing {\"issue\":$ISSUE,\"plugin\":\"$NAME\",\"ref\":\"$SHA\"} -->"
           # Opened with the App's token, not this job's. GitHub forbids
           # Actions from opening pull requests here, and the switch that would
           # allow it is the same one that lets a bot approve reviews — a
