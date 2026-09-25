@@ -79,6 +79,6 @@ jobs:
         with:
           persist-credentials: false
       - name: The site draws the catalogue as text
-        run: node --test site/test/*.test.mjs
+        run: node --test --test-timeout=180000 --test-force-exit site/test/*.test.mjs
       - name: The site assembles next to plugins.json
         run: scripts/build-site.sh "$RUNNER_TEMP/site" && test -f "$RUNNER_TEMP/site/plugins.json" && test -f "$RUNNER_TEMP/site/index.html"
