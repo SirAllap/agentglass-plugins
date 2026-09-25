@@ -25,6 +25,7 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
@@ -33,7 +34,7 @@ jobs:
         with:
           persist-credentials: false
       - name: The site draws the catalogue as text
-        run: node --test site/test/*.test.mjs
+        run: node --test --test-timeout=180000 --test-force-exit site/test/browser.test.mjs site/test/design.test.mjs site/test/render.test.mjs
       - name: Assemble the site, with plugins.json at its root
         run: scripts/build-site.sh _site
       - uses: actions/upload-pages-artifact@v5

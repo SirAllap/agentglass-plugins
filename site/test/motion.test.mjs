@@ -100,11 +100,13 @@ async function browser() {
     };
     return { ask, close: () => send("Target.closeTarget", { targetId }) };
   }
-  const quit = () => { ws.close(); proc.kill(); try { rmSync(dir, { recursive: true, force: true }); } catch { /* still closing */ } };
+  const quit = () => { ws.close(); proc.kill("SIGKILL"); try { rmSync(dir, { recursive: true, force: true }); } catch { /* still closing */ } };
   return { open, quit };
 }
 
-test("the page moves the way the landing does, and not at all when asked", { skip }, async (t) => {
+// A CDP call that is never answered waits forever; on the CI runner that held
+// the whole job until it was cancelled. The timeout turns it into a failure.
+test("the page moves the way the landing does, and not at all when asked", { skip, timeout: 120000 }, async (t) => {
   const { server, port } = await serve();
   const b = await browser();
   const base = `http://127.0.0.1:${port}/`;

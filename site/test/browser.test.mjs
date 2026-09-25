@@ -49,10 +49,14 @@ function dump(url) {
   const args = ["--headless=new", "--disable-gpu", "--no-first-run", "--no-default-browser-check", "--disable-extensions",
     "--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1", "--virtual-time-budget=4000", "--dump-dom", url];
   if (process.env.CI) args.unshift("--no-sandbox");
-  return new Promise((ok, no) => execFile(chrome, args, { timeout: 60000, maxBuffer: 8 << 20 }, (err, out) => (err ? no(err) : ok(out))));
+  return new Promise((ok, no) => execFile(chrome, args, { timeout: 60000, killSignal: "SIGKILL", maxBuffer: 8 << 20 }, (err, out) => (err ? no(err) : ok(out))));
 }
 
-test("nothing in a hostile catalogue runs in a browser", { skip: !chrome && "no Chrome or Chromium installed" }, async () => {
+// A Chrome that ignores SIGTERM, or a helper that keeps its stdout open, held
+// the Pages publish for over nine minutes: execFile waits for the pipe, and
+// server.close() waits for keep-alive sockets. SIGKILL, a test timeout and
+// closing every connection bound it.
+test("nothing in a hostile catalogue runs in a browser", { timeout: 180000, skip: !chrome && "no Chrome or Chromium installed" }, async () => {
   const { server, beacons, port } = await serve();
   try {
     const base = `http://127.0.0.1:${port}/`;
@@ -72,6 +76,7 @@ test("nothing in a hostile catalogue runs in a browser", { skip: !chrome && "no 
     assert.match(first, /class="pl-one"/, "the plugin's own page opened");
     assert.deepEqual(beacons, [], "no payload reached the server");
   } finally {
+    server.closeAllConnections();
     server.close();
   }
 });
