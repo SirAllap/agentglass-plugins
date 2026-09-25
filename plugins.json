@@ -56,6 +56,28 @@
         "claude"
       ],
       "added": "2026-09-20"
+    },
+    {
+      "id": "orbit-hello",
+      "title": "Orbit Hello",
+      "publisher": "orbit-labs",
+      "verified": false,
+      "scope": "read",
+      "draws": [],
+      "source": {
+        "kind": "git",
+        "url": "https://github.com/SirAllap/agx-e2e-test-plugin",
+        "ref": "0ba8c92747fc451f55529fc323eaedb42cb46951"
+      },
+      "sha256": "fec7e78db4c90be035b0f8b848c6ce40598f84bca87e93a05518de10dba6c62c",
+      "description": "E2E TEST PLUGIN (not a real submission). Logs a line to its own folder when an agent finishes a turn. It writes only inside its own folder and needs read scope. Opened by the agx-plugin-e2e test.",
+      "categories": [
+        "other",
+        "test",
+        "e2e",
+        "orbit"
+      ],
+      "added": "2026-09-25"
     }
   ]
 }
