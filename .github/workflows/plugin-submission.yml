@@ -101,6 +101,10 @@ jobs:
           # and re-run this by editing the issue.
           ls /tmp/plugin/preview.png /tmp/plugin/preview.jpg /tmp/plugin/preview.jpeg /tmp/plugin/preview.webp 2>/dev/null | head -1 | xargs -r basename > report/preview || true
           python3 scripts/plugin-baseline.py /tmp/plugin > report/baseline.json || true
+          # Whether what the scan found needs a person's read before anything
+          # is listed. Decided in scripts/gate.py, where a test can reach it,
+          # and anything but an explicit `no` counts as yes.
+          python3 scripts/gate.py review report/baseline.json > report/review || echo yes > report/review
 
       - name: Write what was found, without saying it anywhere yet
         run: |
@@ -201,6 +205,10 @@ jobs:
                   # crashed scanner and a missing file all look like from here.
                   out.append(f"⚠️ The source scan did not complete ({q(b.get('outcome') or 'no result', 60)}), so nothing is "
                              "known about what is in this repository's files. Editing the issue runs it again.")
+          review = read("review") != "no"
+          if repo and reachable and review:
+              out += ["", "🔎 **This needs a person's read before it can be listed.** Somebody with write access reads this "
+                      "report and the source, then applies `security-reviewed`; `approved for listing` alone will not list it."]
           out += [
               "",
               "---",
@@ -214,7 +222,8 @@ jobs:
           # the marker so the approval lists only from a report that passed.
           ready = bool(v.get("ok") and reachable)
           marker = {"repository": repo, "commit": sha, "manifest": bool(v.get("ok")), "ready": ready,
-                    "baseline": b.get("outcome"), "findings": len(b.get("findings") or [])}
+                    "baseline": b.get("outcome"), "findings": len(b.get("findings") or []),
+                    "review": review}
           print(f"\n<!-- agentglass-plugin-submission-result {json.dumps(marker, separators=(',', ':'))} -->")
           open("report/verdict", "w").write("READY" if ready else "NOT-READY")
           PY
@@ -269,6 +278,8 @@ jobs:
           gh label create "ready for listing" --repo "$REPO" --color 0E8A16 --description "The catalogue check passed; a maintainer decides" 2>/dev/null || true
           gh label create "changes needed" --repo "$REPO" --color D93F0B --description "The catalogue check found something to fix" 2>/dev/null || true
           gh label create "approved for listing" --repo "$REPO" --color 5319E7 --description "Applied by a maintainer; opens the catalogue pull request" 2>/dev/null || true
+          gh label create "security-review-required" --repo "$REPO" --color FBCA04 --description "The scan found something a person must read before listing" 2>/dev/null || true
+          gh label create "security-reviewed" --repo "$REPO" --color 0052CC --description "Applied by a maintainer after reading the latest report and the source" 2>/dev/null || true
           # The report is the only thing that crosses from the job that read a
           # stranger's code. If it is missing, the check failed rather than
           # passed, and the issue is told that rather than left silent.
@@ -353,7 +364,7 @@ jobs:
           # so if the labels cannot be taken off, nothing is posted.
           if [ "$hold" = held ] && [ -z "$mine" ]; then
             gh issue edit "$ISSUE" --repo "$REPO" --add-label "changes needed" \
-              --remove-label "ready for listing" --remove-label "approved for listing" \
+              --remove-label "ready for listing" --remove-label "approved for listing" --remove-label "security-reviewed" \
               || { echo "::error::could not take the labels off the issue; the report about the new commit is not posted"; exit 1; }
           fi
           if [ -n "$mine" ]; then
@@ -365,4 +376,15 @@ jobs:
             gh issue edit "$ISSUE" --repo "$REPO" --add-label "changes needed" --remove-label "ready for listing" || true
           elif [ "$hold" != held ]; then
             gh issue edit "$ISSUE" --repo "$REPO" --add-label "ready for listing" --remove-label "changes needed" || true
+          fi
+          # A finding that needs a person's read says so on the issue, and it is
+          # `security-reviewed` that answers it, applied by a person and never
+          # by this job: this only ever takes it OFF. A report that was just
+          # written is a report nobody has reviewed yet, so a review given on
+          # the one before it goes with it. The approval checks the same thing
+          # from the label events, so a failed removal here does not open it.
+          if [ "$(cat report/review 2>/dev/null)" = no ]; then
+            gh issue edit "$ISSUE" --repo "$REPO" --remove-label "security-review-required" --remove-label "security-reviewed" || true
+          else
+            gh issue edit "$ISSUE" --repo "$REPO" --add-label "security-review-required" --remove-label "security-reviewed" || true
           fi
