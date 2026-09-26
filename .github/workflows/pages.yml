@@ -1,10 +1,11 @@
-# Publishes plugins.json on this repository's Pages site, which is where the
-# app's market and the project's plugins page read it from. Pages answers with
-# `Access-Control-Allow-Origin: *`, so the landing page on the app's own site
-# can fetch it across origins.
+# Publishes plugins.json and the market site on this repository's Pages site.
+# plugins.json stays at the root, which is where the app's market and the
+# project's plugins page read it from; the site in site/ sits next to it and
+# reads the same file. Pages answers with `Access-Control-Allow-Origin: *`, so
+# the landing page on the app's own site can fetch it across origins.
 #
-# A bad merge here changes a list. It ships no binary and moves no tag: that
-# is the reason the catalogue lives in its own repository.
+# A bad merge here changes a list and a static page. It ships no binary and
+# moves no tag: that is the reason the catalogue lives in its own repository.
 name: Publish the catalogue
 
 on:
@@ -24,6 +25,7 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
@@ -31,12 +33,12 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: The file parses before it is published
-        run: python3 -c "import json;d=json.load(open('plugins.json'));assert isinstance(d.get('plugins'),list)"
-      - name: Assemble the site
-        run: mkdir -p site && cp plugins.json site/
+      - name: The site draws the catalogue as text
+        run: node --test --test-timeout=180000 --test-force-exit site/test/browser.test.mjs site/test/design.test.mjs site/test/render.test.mjs
+      - name: Assemble the site, with plugins.json at its root
+        run: scripts/build-site.sh _site
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: site
+          path: _site
       - id: deploy
         uses: actions/deploy-pages@v5

@@ -23,6 +23,7 @@ permissions: {}
 jobs:
   catalogue:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: read
       pull-requests: read
@@ -63,3 +64,21 @@ jobs:
           git fetch -q --depth 1 origin "$HEAD_SHA"
           git show "$HEAD_SHA:plugins.json" > "$RUNNER_TEMP/head.json"
           python3 scripts/catalogue-check.py plugins.json "$RUNNER_TEMP/head.json"
+
+  # The market site draws every catalogue field as text. Its tests feed it
+  # hostile entries, in a stub document and in headless Chrome, and fail if
+  # anything runs. It runs the pull request's own code, so it holds nothing:
+  # no secret, and a token that can only read.
+  site:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: The site draws the catalogue as text
+        run: node --test --test-timeout=180000 --test-force-exit site/test/*.test.mjs
+      - name: The site assembles next to plugins.json
+        run: scripts/build-site.sh "$RUNNER_TEMP/site" && test -f "$RUNNER_TEMP/site/plugins.json" && test -f "$RUNNER_TEMP/site/index.html"
