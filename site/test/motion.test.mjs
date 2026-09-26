@@ -61,14 +61,25 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function browser() {
   const dir = mkdtempSync(join(tmpdir(), "market-cdp-"));
   const args = ["--headless=new", "--remote-debugging-port=0", `--user-data-dir=${dir}`, "--no-first-run", "--no-default-browser-check",
-    "--disable-extensions", "--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1", "about:blank"];
+    "--disable-extensions", "--disable-gpu", "--disable-dev-shm-usage", "--host-resolver-rules=MAP * ~NOTFOUND, EXCLUDE 127.0.0.1", "about:blank"];
+  // A CI runner's kernel refuses the sandbox's user namespaces to a non-root Chrome.
   if (process.env.CI) args.unshift("--no-sandbox");
-  const proc = spawn(chrome, args, { stdio: "ignore" });
+  // Chrome's own words are kept: when no port ever shows, they say why.
+  const proc = spawn(chrome, args, { stdio: ["ignore", "ignore", "pipe"] });
+  let said = "";
+  let exited;
+  proc.stderr.on("data", (d) => { said = (said + d).slice(-4000); });
+  proc.on("exit", (code, signal) => { exited = signal || `code ${code}`; });
   let port;
-  for (let i = 0; i < 150 && !port; i++) {
+  for (let i = 0; i < 600 && !port && exited === undefined; i++) {
     await sleep(100);
     const f = join(dir, "DevToolsActivePort");
     if (existsSync(f)) port = readFileSync(f, "utf8").split("\n")[0];
+  }
+  if (!port) {
+    proc.kill("SIGKILL");
+    rmSync(dir, { recursive: true, force: true });
+    throw new Error(`${chrome} gave no DevTools port (${exited === undefined ? "still starting after 60s" : `exited: ${exited}`}). Its stderr:\n${said}`);
   }
   const { webSocketDebuggerUrl } = await (await fetch(`http://127.0.0.1:${port}/json/version`)).json();
   const ws = new WebSocket(webSocketDebuggerUrl);
