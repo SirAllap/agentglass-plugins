@@ -78,6 +78,28 @@
         "orbit"
       ],
       "added": "2026-09-25"
+    },
+    {
+      "id": "orbit-note",
+      "title": "Orbit Note",
+      "publisher": "orbit-labs",
+      "verified": false,
+      "scope": "read",
+      "draws": [],
+      "source": {
+        "kind": "git",
+        "url": "https://github.com/SirAllap/agx-e2e-happy",
+        "ref": "0d0da5c125afc85918a0f2a474d351d4c5249d86"
+      },
+      "sha256": "3ad7627fec76f46861264f215e946c722ef06f58386271e581178113afbf34a3",
+      "description": "E2E TEST PLUGIN (not a real submission). Logs a line to its own folder when an agent finishes a turn. Needs read scope. Opened by the agx-plugin-e2e-2 test.",
+      "categories": [
+        "other",
+        "test",
+        "e2e",
+        "orbit"
+      ],
+      "added": "2026-09-27"
     }
   ]
 }
