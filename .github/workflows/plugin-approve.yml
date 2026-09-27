@@ -489,31 +489,20 @@ jobs:
           # listing on nothing. So the rules are read first, with this job's
           # own token, which can read them and write nothing.
           gh api --paginate "repos/$GITHUB_REPOSITORY/rules/branches/main" --jq '.[] | @json' > /tmp/rules.jsonl 2>/dev/null || : > /tmp/rules.jsonl
-          gate=$(RULES=/tmp/rules.jsonl python3 - <<'PY'
-          import json, os
-          required = set()
-          try:
-              for line in open(os.environ["RULES"]):
-                  if not line.strip():
-                      continue
-                  rule = json.loads(line)
-                  if isinstance(rule, dict) and rule.get("type") == "required_status_checks":
-                      checks = (rule.get("parameters") or {}).get("required_status_checks")
-                      if isinstance(checks, list):
-                          required |= {c.get("context") for c in checks if isinstance(c, dict)}
-          except (OSError, ValueError):
-              required = set()
-          print("armed" if "catalogue" in required else "waits")
-          PY
-          )
+          plan=$(RULES=/tmp/rules.jsonl python3 scripts/gate.py merge-plan)
+          gate=$(printf '%s' "$plan" | jq -r .gate)
+          method=$(printf '%s' "$plan" | jq -r .method)
           if GH_TOKEN="$CATALOGUE_TOKEN" gh pr create --title "catalogue: list $NAME" --body "$body" --base main --head "$branch" 2>/tmp/pr.err; then
             # The mutation that only arms auto-merge, not `gh pr merge --auto`,
             # which merges at once when nothing is pending on the pull request.
+            # The method has to be one `main`'s ruleset allows, or auto-merge
+            # arms and then never fires: a squash offered against a ruleset
+            # that only allows a merge commit sits pending forever, silently.
             if [ "$gate" = armed ] \
               && pr=$(GH_TOKEN="$CATALOGUE_TOKEN" gh pr view "$branch" --json id --jq .id) \
               && GH_TOKEN="$CATALOGUE_TOKEN" gh api graphql \
-                -f query='mutation($pr: ID!) { enablePullRequestAutoMerge(input: {pullRequestId: $pr, mergeMethod: SQUASH}) { clientMutationId } }' \
-                -f pr="$pr" >/dev/null; then
+                -f query='mutation($pr: ID!, $method: PullRequestMergeMethod!) { enablePullRequestAutoMerge(input: {pullRequestId: $pr, mergeMethod: $method}) { clientMutationId } }' \
+                -f pr="$pr" -f method="$method" >/dev/null; then
               exit 0
             fi
             if [ "$gate" = armed ]; then

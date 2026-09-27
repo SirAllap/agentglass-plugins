@@ -108,6 +108,32 @@ def listing_comment(pr_body, merge_sha, issue_labels):
                     f"close it when you have checked the listing of `{plugin}`."}
 
 
+MERGE_METHODS = {"merge": "MERGE", "squash": "SQUASH", "rebase": "REBASE"}
+
+
+def merge_plan(rules):
+    """Whether a listing can auto-merge, and which method `main`'s ruleset allows.
+
+    A ruleset that names no allowed method allows all of them, and `MERGE` is
+    the one every ruleset here has allowed so far, so it is the default a
+    fresh submission-only repo will hit before it has an opinion."""
+    required = set()
+    method = "MERGE"
+    for rule in rules:
+        if not isinstance(rule, dict):
+            continue
+        params = rule.get("parameters") or {}
+        if rule.get("type") == "required_status_checks":
+            checks = params.get("required_status_checks")
+            if isinstance(checks, list):
+                required |= {c.get("context") for c in checks if isinstance(c, dict)}
+        elif rule.get("type") == "pull_request":
+            allowed = params.get("allowed_merge_methods")
+            if isinstance(allowed, list) and allowed:
+                method = MERGE_METHODS.get(allowed[0], "MERGE")
+    return {"gate": "armed" if "catalogue" in required else "waits", "method": method}
+
+
 def rows(path):
     try:
         return [json.loads(l) for l in open(path) if l.strip()]
@@ -151,7 +177,10 @@ def main(argv):
             return 1
         print(json.dumps(out))
         return 0
-    print("usage: gate.py review <baseline.json> | approval | listed-issue | listed", file=sys.stderr)
+    if len(argv) == 2 and argv[1] == "merge-plan":
+        print(json.dumps(merge_plan(rows(env["RULES"]))))
+        return 0
+    print("usage: gate.py review <baseline.json> | approval | listed-issue | listed | merge-plan", file=sys.stderr)
     return 2
 
 
