@@ -176,6 +176,31 @@ class Listed(unittest.TestCase):
         self.assertIsNone(gate.listing_comment(BODY, "oops", ["plugin-submission"]))
 
 
+class MergePlan(unittest.TestCase):
+    def test_armed_when_catalogue_required_method_from_ruleset(self):
+        rules = [{"type": "required_status_checks",
+                  "parameters": {"required_status_checks": [{"context": "catalogue"}]}},
+                 {"type": "pull_request", "parameters": {"allowed_merge_methods": ["merge"]}}]
+        self.assertEqual(gate.merge_plan(rules), {"gate": "armed", "method": "MERGE"})
+
+    def test_waits_when_catalogue_not_required(self):
+        rules = [{"type": "required_status_checks", "parameters": {"required_status_checks": [{"context": "build"}]}}]
+        self.assertEqual(gate.merge_plan(rules)["gate"], "waits")
+
+    def test_defaults_to_merge_when_no_pull_request_rule(self):
+        rules = [{"type": "required_status_checks",
+                  "parameters": {"required_status_checks": [{"context": "catalogue"}]}}]
+        self.assertEqual(gate.merge_plan(rules)["method"], "MERGE")
+
+    def test_follows_a_ruleset_that_only_allows_squash(self):
+        rules = [{"type": "pull_request", "parameters": {"allowed_merge_methods": ["squash"]}}]
+        self.assertEqual(gate.merge_plan(rules)["method"], "SQUASH")
+
+    def test_broken_or_missing_rules_still_returns_a_plan(self):
+        self.assertEqual(gate.merge_plan([]), {"gate": "waits", "method": "MERGE"})
+        self.assertEqual(gate.merge_plan([None, "not a dict", 42]), {"gate": "waits", "method": "MERGE"})
+
+
 class Cli(unittest.TestCase):
     def run_cli(self, *args, env=None):
         e = {**os.environ, **(env or {})}
@@ -251,6 +276,12 @@ class Workflows(unittest.TestCase):
 
     def test_a_second_run_finds_the_branch_taken(self):
         self.assertIn("git/ref/heads/$branch", wf("plugin-approve.yml"))
+
+    def test_auto_merge_method_comes_from_the_ruleset_not_a_hardcoded_squash(self):
+        s = wf("plugin-approve.yml")
+        self.assertNotRegex(s, r"mergeMethod:\s*SQUASH")
+        self.assertIn("gate.py merge-plan", s)
+        self.assertIn("$method", s)
 
     def test_the_comment_goes_to_the_issue_the_marker_validated(self):
         self.assertIn("jq -r .issue", wf("plugin-listed.yml"))
