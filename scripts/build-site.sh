@@ -10,6 +10,7 @@ python3 -c "import json,sys;d=json.load(open(sys.argv[1]));assert isinstance(d.g
 rm -rf "$out"
 mkdir -p "$out"
 cp "$root"/site/*.html "$root"/site/*.css "$root"/site/*.js "$root"/site/*.svg "$out"/
+cp -R "$root/site/art" "$out/art"
 cp "$root/plugins.json" "$out/"
 # Pages runs Jekyll unless told not to, and nothing here is a Jekyll site.
 touch "$out/.nojekyll"

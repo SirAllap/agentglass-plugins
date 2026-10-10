@@ -14,7 +14,7 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { readEntry, previewUrl, licenceName, card, detail, prose } from "../render.js";
+import { readEntry, previewUrl, artFor, ART, licenceName, card, detail, prose } from "../render.js";
 import { hostile, PAYLOADS, REF, SHA } from "./fixtures.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -144,6 +144,21 @@ test("fields the catalogue does not vouch for are dropped", () => {
 });
 
 /* ── the picture rule ───────────────────────────────────────── */
+test("the catalogue's own art is worn only by the repository it was drawn for", () => {
+  const own = readEntry({ id: "context-diet", source: { url: "https://github.com/SirAllap/context-diet", ref: REF },
+    preview: `https://raw.githubusercontent.com/SirAllap/context-diet/${REF}/preview.png` });
+  assert.equal(own.preview, "art/context-diet.png", "art wins over the publisher's preview");
+  const taken = readEntry({ id: "context-diet", source: { url: "https://github.com/acme/context-diet", ref: REF } });
+  assert.equal(taken.preview, "", "the same id from another repository gets no art");
+  assert.equal(artFor("context-diet", null), "", "no pinned repository, no art");
+  assert.equal(artFor("__proto__", { owner: "x", name: "y" }), "");
+  for (const { file } of Object.values(ART)) {
+    const bytes = readFileSync(join(here, "..", file));
+    assert.equal(bytes.subarray(1, 4).toString(), "PNG", `${file} is a PNG that ships with the site`);
+    assert.equal(bytes.readUInt32BE(16) * 9, bytes.readUInt32BE(20) * 16, `${file} is 16:9, the card's shape`);
+  }
+});
+
 test("a preview is shown only from this repository at this commit", () => {
   const repo = { owner: "acme", name: "orbit-lint", ref: REF };
   const base = `https://raw.githubusercontent.com/acme/orbit-lint/${REF}`;
