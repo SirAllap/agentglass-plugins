@@ -203,7 +203,9 @@ html{scrollbar-color:rgba(167,139,250,.28) var(--void);scroll-padding-top:calc(7
   grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);column-gap:28px;row-gap:12px;align-content:start}
  .pl-grid>.pl-card:last-child:nth-child(odd):not(.ghost)>*{grid-column:2}
  .pl-grid>.pl-card:last-child:nth-child(odd):not(.ghost)>.pl-shot{grid-column:1;grid-row:1/span 8;
-  margin:-20px 0 -20px -20px;border-radius:16px 0 0 16px;aspect-ratio:auto;min-height:340px}
+  align-self:center;margin:0;border-radius:12px}
+ /* The picture keeps the card's 16:9 beside the text, centred in the row,
+    rather than stretched to the text's height and cropped to its middle. */
 }
 
 /* A skeleton in the grid's shape while the catalogue loads. */
