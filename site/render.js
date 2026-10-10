@@ -27,7 +27,22 @@ export const DRAWS = {
   settings: ["Settings", "A page of fields in Settings, filled in by you."],
   "pr-notes": ["Notes in pull requests", "Notes inside a pull request, shown in agentglass only and never sent to GitHub."],
   "pr-button": ["Pull request button", "A button in the header of every pull request."],
+  inboxAnnotations: ["Inbox badges", "A badge on Inbox rows and a sort order you can pick; it never hides a row or marks one read."],
 };
+
+/**
+ * Card art the catalogue itself holds, for the project's own entries: a
+ * picture of what the plugin does, drawn for the card's width, served from
+ * this site and reviewed in this repository. It is keyed by id AND
+ * repository, so an entry from anywhere else never wears it. A publisher's
+ * own `preview.png` is still the way for everybody else, and for these two
+ * it would mean a new listed version of each repository just to change a
+ * picture. Art wins over a preview where both exist.
+ */
+export const ART = Object.freeze({
+  "context-diet": Object.freeze({ repo: "sirallap/context-diet", file: "art/context-diet.png" }),
+  "local-review": Object.freeze({ repo: "sirallap/agentglass-local-review", file: "art/local-review.png" }),
+});
 
 const HEX40 = /^[0-9a-f]{40}$/;
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -69,8 +84,14 @@ export function readEntry(p) {
     ref: HEX40.test(ref) ? ref : "",
     sha256: HEX64.test(sha) ? sha : "",
     repo,
-    preview: previewUrl(p.preview, repo),
+    preview: artFor(id, repo) || previewUrl(p.preview, repo),
   };
+}
+
+/** The catalogue's own art for this id, only from the repository it was drawn for. */
+export function artFor(id, repo) {
+  const a = Object.hasOwn(ART, id) ? ART[id] : null;
+  return a && repo && `${repo.owner}/${repo.name}`.toLowerCase() === a.repo ? a.file : "";
 }
 
 /**
