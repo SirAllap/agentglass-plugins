@@ -59,6 +59,8 @@ jobs:
         env:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           AGENTGLASS_PLUGIN_CLI: /tmp/agentglass-plugin
+          # An owner's pull request labelled `removal` may take entries off the shelf (and only that).
+          ALLOW_REMOVAL: ${{ github.event.pull_request.author_association == 'OWNER' && contains(github.event.pull_request.labels.*.name, 'removal') && '1' || '0' }}
         run: |
           set -euo pipefail
           git fetch -q --depth 1 origin "$HEAD_SHA"

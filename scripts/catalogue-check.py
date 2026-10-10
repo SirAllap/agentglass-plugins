@@ -95,7 +95,7 @@ def on_a_branch_or_tag(url, sha):
         return r.returncode == 0 and bool(r.stdout.strip())
 
 
-def check(base, head):
+def check(base, head, allow_removal=False):
     """The problems with this change, as sentences. Empty means it holds."""
     problems = []
     if head.get("name") != base.get("name") or head.get("owner") != base.get("owner"):
@@ -109,9 +109,14 @@ def check(base, head):
             problems.append(f"{p.get('id')!r} is listed twice")
         after[p.get("id")] = p
     gone = sorted(str(i) for i in before if i not in after)
+    changed = [p for i, p in after.items() if before.get(i) != p]
+    # The owner may take entries off the shelf, on purpose and only that: the
+    # workflow sets allow_removal for an owner's pull request carrying the
+    # `removal` label. A removal that also adds or changes an entry is refused.
+    if allow_removal and gone and not changed:
+        return problems
     if gone:
         problems.append(f"removes {', '.join(gone)}; a listing adds or replaces one entry and removes none")
-    changed = [p for i, p in after.items() if before.get(i) != p]
     if len(changed) != 1:
         problems.append(f"changes {len(changed)} entries; a listing changes exactly one")
     if problems:
@@ -186,11 +191,11 @@ def main():
     except (OSError, json.JSONDecodeError) as e:
         print(f"::error::not two catalogues: {e}")
         return 2
-    problems = check(base, head)
+    problems = check(base, head, allow_removal=os.environ.get("ALLOW_REMOVAL") == "1")
     for p in problems:
         print(f"::error::{p}")
     if not problems:
-        print("one entry, pinned, and the commit it names is what it says")
+        print("removal only, allowed for the owner" if os.environ.get("ALLOW_REMOVAL") == "1" and len(head.get("plugins") or []) < len(base.get("plugins") or []) else "one entry, pinned, and the commit it names is what it says")
     return 1 if problems else 0
 
 
