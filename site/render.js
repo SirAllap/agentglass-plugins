@@ -27,6 +27,7 @@ export const DRAWS = {
   settings: ["Settings", "A page of fields in Settings, filled in by you."],
   "pr-notes": ["Notes in pull requests", "Notes inside a pull request, shown in agentglass only and never sent to GitHub."],
   "pr-button": ["Pull request button", "A button in the header of every pull request."],
+  inboxAnnotations: ["Inbox badges", "A badge on Inbox rows and a sort order you can pick; it never hides a row or marks one read."],
 };
 
 /**
