@@ -31,6 +31,33 @@
       "preview": "https://raw.githubusercontent.com/SirAllap/context-diet/8470e9cb8d4e602baa636eafa534145c979c6412/preview.png"
     },
     {
+      "id": "jev-inbox",
+      "title": "Jev Inbox",
+      "publisher": "agentglass",
+      "verified": false,
+      "scope": "read",
+      "draws": [
+        "inboxAnnotations",
+        "panel",
+        "settings"
+      ],
+      "source": {
+        "kind": "git",
+        "url": "https://github.com/SirAllap/agentglass-jev-inbox-plugin",
+        "ref": "37469042af155c9417ba3048c01485d4cb27d1a8"
+      },
+      "sha256": "8cefd8051229e80d8bb18ef338b311f23e3628734d62122f77dd4883e62f26c2",
+      "description": "Scores each new Inbox notification with TypeSafe's Jev model — does it need you, and how urgently — and shows a needs-you badge and an optional sort order. Off until you add your own TypeSafe key and tick that the notification title leaves this machine; links, names, emails and secrets are removed first, and comments, code and authors are never sent. It only badges and orders: nothing is hidden or marked read.",
+      "categories": [
+        "inbox",
+        "notifications",
+        "triage",
+        "jev"
+      ],
+      "added": "2026-10-10",
+      "preview": "https://raw.githubusercontent.com/SirAllap/agentglass-jev-inbox-plugin/37469042af155c9417ba3048c01485d4cb27d1a8/preview.png"
+    },
+    {
       "id": "local-review",
       "title": "Local Review",
       "publisher": "agentglass",
