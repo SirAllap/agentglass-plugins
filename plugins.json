@@ -64,6 +64,7 @@
       "verified": false,
       "scope": "read",
       "draws": [
+        "noteActions",
         "panel",
         "pr-button",
         "pr-notes",
@@ -72,17 +73,17 @@
       "source": {
         "kind": "git",
         "url": "https://github.com/SirAllap/agentglass-local-review",
-        "ref": "cfa18a8c376695bdd7deebbbdb1005da27cc86aa"
+        "ref": "2446e1eca8b55b11f1f2630274e787cdb7fe3d3d"
       },
-      "sha256": "45a379ed6914b6469cc845d41f75d2e77401691b2506050f61856189429566b2",
-      "description": "Reviews your pull requests on this machine with the agent and model you choose, inside a sandbox that cannot write or reach GitHub, and puts the findings in the pull request view. Nothing is posted. This update (commit cfa18a8c376695bdd7deebbbdb1005da27cc86aa) reads the head code from the local checkout through the app (no gh token needed for repositories with a checkout), remembers findings dismissed with a reason, and estimates the cost before a review runs.",
+      "sha256": "194b1c4a17ae61db4e5c8dc40bdab8f03d5fa658bceefe6b7fdf65add14eec64",
+      "description": "Reviews your pull requests on this machine with the agent and model you choose, inside a sandbox that cannot write or reach GitHub, and puts the findings in the pull request view. Nothing is posted. This update (commit 2446e1eca8b55b11f1f2630274e787cdb7fe3d3d) asks before a costly or unrequested review (needs-ok), answers in the finding thread, adds Re-check and Explain buttons, gets a second opinion on critical and high findings, reads the day's spend from the app, sends the agent and model for",
       "categories": [
         "review",
         "pull-requests",
         "sandbox"
       ],
       "added": "2026-10-16",
-      "preview": "https://raw.githubusercontent.com/SirAllap/agentglass-local-review/cfa18a8c376695bdd7deebbbdb1005da27cc86aa/preview.png"
+      "preview": "https://raw.githubusercontent.com/SirAllap/agentglass-local-review/2446e1eca8b55b11f1f2630274e787cdb7fe3d3d/preview.png"
     }
   ]
 }
