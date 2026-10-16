@@ -72,17 +72,17 @@
       "source": {
         "kind": "git",
         "url": "https://github.com/SirAllap/agentglass-local-review",
-        "ref": "67736c6528e3de9e833f68c9eb7c6383c75415ae"
+        "ref": "57496c3f38345bd6be97d9147f973adb2e408c5d"
       },
-      "sha256": "fa22df081f545137e16d09108c9fbcc4e1ecbf52a1d519d7e95eace4cff1978c",
-      "description": "Reviews your pull requests on this machine with the agent and model you choose, inside a sandbox that cannot write or reach GitHub, and puts the findings in the pull request view. Nothing is posted. This update (commit 67736c6528e3de9e833f68c9eb7c6383c75415ae) makes it work on a real repository: pull requests are read through the app's own read routes, gh and the agent are found by their real path, the self-test checks GitHub, and the Agent selector lists the installed agents.",
+      "sha256": "6664de3119a305e86444f36d9d511951c8f8179b2f3786686f707d1a2514e7c4",
+      "description": "Reviews your pull requests on this machine with the agent and model you choose, inside a sandbox that cannot write or reach GitHub, and puts the findings in the pull request view. Nothing is posted. This update (commit 57496c3f38345bd6be97d9147f973adb2e408c5d) uses the app's head/base SHAs, commit-to-commit diff and label filter, and retries a review that failed for a GitHub or transport reason.",
       "categories": [
         "review",
         "pull-requests",
         "sandbox"
       ],
       "added": "2026-10-16",
-      "preview": "https://raw.githubusercontent.com/SirAllap/agentglass-local-review/67736c6528e3de9e833f68c9eb7c6383c75415ae/preview.png"
+      "preview": "https://raw.githubusercontent.com/SirAllap/agentglass-local-review/57496c3f38345bd6be97d9147f973adb2e408c5d/preview.png"
     }
   ]
 }
