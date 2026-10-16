@@ -72,17 +72,17 @@
       "source": {
         "kind": "git",
         "url": "https://github.com/SirAllap/agentglass-local-review",
-        "ref": "57496c3f38345bd6be97d9147f973adb2e408c5d"
+        "ref": "cfa18a8c376695bdd7deebbbdb1005da27cc86aa"
       },
-      "sha256": "6664de3119a305e86444f36d9d511951c8f8179b2f3786686f707d1a2514e7c4",
-      "description": "Reviews your pull requests on this machine with the agent and model you choose, inside a sandbox that cannot write or reach GitHub, and puts the findings in the pull request view. Nothing is posted. This update (commit 57496c3f38345bd6be97d9147f973adb2e408c5d) uses the app's head/base SHAs, commit-to-commit diff and label filter, and retries a review that failed for a GitHub or transport reason.",
+      "sha256": "45a379ed6914b6469cc845d41f75d2e77401691b2506050f61856189429566b2",
+      "description": "Reviews your pull requests on this machine with the agent and model you choose, inside a sandbox that cannot write or reach GitHub, and puts the findings in the pull request view. Nothing is posted. This update (commit cfa18a8c376695bdd7deebbbdb1005da27cc86aa) reads the head code from the local checkout through the app (no gh token needed for repositories with a checkout), remembers findings dismissed with a reason, and estimates the cost before a review runs.",
       "categories": [
         "review",
         "pull-requests",
         "sandbox"
       ],
       "added": "2026-10-16",
-      "preview": "https://raw.githubusercontent.com/SirAllap/agentglass-local-review/57496c3f38345bd6be97d9147f973adb2e408c5d/preview.png"
+      "preview": "https://raw.githubusercontent.com/SirAllap/agentglass-local-review/cfa18a8c376695bdd7deebbbdb1005da27cc86aa/preview.png"
     }
   ]
 }
