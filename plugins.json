@@ -72,17 +72,17 @@
       "source": {
         "kind": "git",
         "url": "https://github.com/SirAllap/agentglass-local-review",
-        "ref": "3d995a39c97b9bc016411a10cffc594aac438c79"
+        "ref": "67736c6528e3de9e833f68c9eb7c6383c75415ae"
       },
-      "sha256": "3de8ef12aea970bb0421744dc741a0ebae28692552def183216d61fdb137fdd4",
-      "description": "Reviews your pull requests on this machine with the agent and model you choose, inside a sandbox with no writable checkout, no GitHub login and no reach into your home directory. The findings appear inside the pull request in agentglass, marked local, and nothing is ever posted to GitHub. It costs whatever the model costs — it starts an agent, and the spend caps are yours to set.",
+      "sha256": "fa22df081f545137e16d09108c9fbcc4e1ecbf52a1d519d7e95eace4cff1978c",
+      "description": "Reviews your pull requests on this machine with the agent and model you choose, inside a sandbox that cannot write or reach GitHub, and puts the findings in the pull request view. Nothing is posted. This update (commit 67736c6528e3de9e833f68c9eb7c6383c75415ae) makes it work on a real repository: pull requests are read through the app's own read routes, gh and the agent are found by their real path, the self-test checks GitHub, and the Agent selector lists the installed agents.",
       "categories": [
         "review",
-        "pull requests",
-        "sandbox",
-        "claude"
+        "pull-requests",
+        "sandbox"
       ],
-      "added": "2026-09-20"
+      "added": "2026-10-16",
+      "preview": "https://raw.githubusercontent.com/SirAllap/agentglass-local-review/67736c6528e3de9e833f68c9eb7c6383c75415ae/preview.png"
     }
   ]
 }
