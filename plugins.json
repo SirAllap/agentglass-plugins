@@ -73,17 +73,17 @@
       "source": {
         "kind": "git",
         "url": "https://github.com/SirAllap/agentglass-local-review",
-        "ref": "c2335db14ac93fda14b051b0296dde5caea25150"
+        "ref": "95b38144b67f19853bd71a5515d9e073c4f987c3"
       },
-      "sha256": "4a72b82dcaca0414e5d7888cc491082d86e47fa6917cd5e0f5ec35630123bc3a",
-      "description": "Reviews your pull requests on this machine with the agent and model you choose, inside a sandbox that cannot write or reach GitHub, and puts the findings in the pull request view. Nothing is posted. This update (commit c2335db14ac93fda14b051b0296dde5caea25150) never skips a labelled pull request silently when the login is unknown: it shows the app's answer and the fix, and adds a login setting.",
+      "sha256": "181e6005bfaed26d29219eb78665c9f18938b259a28795dc697708a31779dfa8",
+      "description": "Reviews your pull requests on this machine with the agent and model you choose, inside a sandbox that cannot write or reach GitHub, and puts the findings in the pull request view. Nothing is posted. This update (commit 95b38144b67f19853bd71a5515d9e073c4f987c3) sees a new label within a minute (fresh list, 60 s poll), acts at once on the app's pr-changed event, and never skips a labelled pull request silently.",
       "categories": [
         "review",
         "pull-requests",
         "sandbox"
       ],
       "added": "2026-10-16",
-      "preview": "https://raw.githubusercontent.com/SirAllap/agentglass-local-review/c2335db14ac93fda14b051b0296dde5caea25150/preview.png"
+      "preview": "https://raw.githubusercontent.com/SirAllap/agentglass-local-review/95b38144b67f19853bd71a5515d9e073c4f987c3/preview.png"
     }
   ]
 }
