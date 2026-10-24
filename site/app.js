@@ -5,7 +5,7 @@
  * the page; `#/plugin/<id>` swaps it for that plugin's own page. Every other
  * hash is an ordinary anchor into the shelf page.
  */
-import { readEntry, card, detail, el, licenceName, rawUrl, blobUrl, SCOPE } from "./render.js";
+import { readEntry, card, detail, el, licenceName, rawUrl, blobUrl, ACCESS, access } from "./render.js";
 import { calm, flip, reveal, spotlight, satellites } from "./motion.js";
 
 const $ = (s) => document.querySelector(s);
@@ -46,7 +46,7 @@ function fillLicences(scope, entries) {
 /* ── the shelf ─────────────────────────────────────────────────── */
 function matches(e) {
   if (state.cat && !e.categories.includes(state.cat)) return false;
-  if (state.scope && e.scope !== state.scope) return false;
+  if (state.scope && access(e)?.key !== state.scope) return false;
   const q = state.q.trim().toLowerCase();
   if (!q) return true;
   const hay = [e.title, e.id, e.publisher, e.description, ...e.categories, e.repo ? `${e.repo.owner}/${e.repo.name}` : ""].join("\n").toLowerCase();
@@ -108,7 +108,7 @@ function renderShelf({ animate = false } = {}) {
   empty.hidden = n > 0 || total === 0;
   if (!empty.hidden) {
     const what = state.q.trim() ? `No plugin matches “${state.q.trim()}”` : "No plugin matches these filters";
-    $("#empty-what").textContent = what + (state.cat ? ` in ${state.cat}` : "") + (state.scope ? ` with ${SCOPE[state.scope].label.toLowerCase()}` : "") + ".";
+    $("#empty-what").textContent = what + (state.cat ? ` in ${state.cat}` : "") + (state.scope ? ` with ${ACCESS[state.scope].label.toLowerCase()}` : "") + ".";
   }
   renderChips();
 }
