@@ -184,7 +184,7 @@ html{scrollbar-color:rgba(167,139,250,.28) var(--void);scroll-padding-top:calc(7
 .pl-manifest .k{color:var(--vio)}
 .pl-manifest .v{color:var(--txt)}
 .pl-manifest .v.s{color:var(--run)}
-.pl-manifest .v.w{color:var(--wait)}
+.pl-manifest .v.warn{color:var(--wait)}
 @media (hover:hover) and (pointer:fine){.pl-card:hover .pl-manifest{transform:none}}
 .pl-ic .ic{width:20px;height:20px}
 .pl-inst{gap:10px;padding:9px 12px}

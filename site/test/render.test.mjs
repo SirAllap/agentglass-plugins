@@ -14,7 +14,7 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { readEntry, previewUrl, artFor, ART, licenceName, card, detail, prose } from "../render.js";
+import { readEntry, previewUrl, artFor, ART, licenceName, card, detail, prose, access } from "../render.js";
 import { hostile, PAYLOADS, REF, SHA } from "./fixtures.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -96,6 +96,17 @@ function assertInert(root) {
 }
 
 /* ── the hostile catalogue ──────────────────────────────────── */
+test("a plugin that writes files never says it reads only", () => {
+  const base = { id: "orbit-keys", publisher: "acme", scope: "read", draws: ["panel"], description: "x" };
+  assert.equal(access(readEntry(base)).label, "Reads only");
+  const w = readEntry({ ...base, writes: ["~/.orbit/keys.json", "~/.orbit.json", "~/.orbit.json", 7] });
+  assert.deepEqual(w.writes, ["~/.orbit/keys.json", "~/.orbit.json"], "paths are text, once each");
+  assert.equal(access(w).label, "Writes 2 files");
+  assert.equal(access(readEntry({ ...base, scope: "full", writes: ["~/a"] })).label, "Full access", "a wider scope keeps its word");
+  const text = assertInert(card(doc, w, "#/plugin/orbit-keys"));
+  assert.ok(text.includes("writes 2 files") && !text.includes("reads only"));
+});
+
 test("a hostile entry becomes text on its card", () => {
   const e = readEntry(hostile[0]);
   const text = assertInert(card(doc, e, "#/plugin/" + encodeURIComponent(e.id)));

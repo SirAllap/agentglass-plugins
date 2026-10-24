@@ -21,6 +21,18 @@ export const SCOPE = {
   full: { label: "Full access", tone: "warn" },
 };
 
+/**
+ * What a plugin may do: its scope, except that "reads only" is never said of a
+ * plugin whose sandbox writes files (scope is the app's API scope, the sandbox
+ * is the disk), so it says what it writes. Anything wider than read keeps its word.
+ */
+export const access = (e) => (e.scope === "read" && e.writes.length
+  ? { key: "writes", label: `Writes ${e.writes.length} ${e.writes.length === 1 ? "file" : "files"}`, tone: "warn" }
+  : e.scope ? { key: e.scope, ...SCOPE[e.scope] } : null);
+
+/** The filter's choices: the scopes, and the one `access` adds. */
+export const ACCESS = { ...SCOPE, writes: { label: "Writes files", tone: "warn" } };
+
 /** Where a plugin draws: a short word for the card, a sentence for its page. */
 export const DRAWS = {
   panel: ["Panel", "Its own panel in the Plugins view, drawn with agentglass's parts."],
@@ -77,6 +89,7 @@ export function readEntry(p) {
     publisher: str(p.publisher, 200),
     verified: p.verified === true,
     scope: Object.hasOwn(SCOPE, p.scope) ? p.scope : null,
+    writes: Array.isArray(p.writes) ? [...new Set(p.writes.filter((w) => typeof w === "string" && w.trim()).map((w) => w.trim().slice(0, 200)))].slice(0, 20) : [],
     draws: Array.isArray(p.draws) ? [...new Set(p.draws.filter((d) => typeof d === "string" && Object.hasOwn(DRAWS, d)))] : [],
     categories: Array.isArray(p.categories) ? [...new Set(p.categories.filter((c) => typeof c === "string" && c.trim()).map((c) => c.trim().toLowerCase().slice(0, 40)))] : [],
     description: str(p.description, 4000).trim(),
@@ -210,7 +223,7 @@ export function prose(doc, text, cls) {
    The class names are the landing's, so its CSS (landing.css) draws them. */
 
 /** The scope as the landing's tag and badge classes name its tone. */
-const tone = (e) => (SCOPE[e.scope].tone === "ok" ? "s" : "w");
+const tone = (e) => (access(e).tone === "ok" ? "s" : "warn");
 
 /**
  * The picture for an entry with none: its manifest, in the landing's window,
@@ -229,6 +242,7 @@ function mark(doc, e) {
   };
   line("id", `"${e.id}"`);
   if (e.scope) line("scope", `"${e.scope}"`, "v " + tone(e));
+  if (e.writes.length) line("writes", "[" + e.writes.map((w) => `"${w}"`).join(", ") + "]", "v warn");
   if (e.draws.length) line("draws", "[" + e.draws.map((d) => `"${d}"`).join(", ") + "]");
   line("ref", e.ref ? `"${shortRef(e)}…"` : "none");
   m.append(bar, code);
@@ -285,7 +299,11 @@ export function card(doc, e, href) {
   c.append(top, el(doc, "p", "pl-desc", e.description.replaceAll("`", "")));
 
   const tags = el(doc, "div", "pl-tags");
-  if (e.scope) tags.append(el(doc, "span", "pl-tag " + tone(e), SCOPE[e.scope].label.toLowerCase()));
+  if (access(e)) {
+    const chip = el(doc, "span", "pl-tag " + tone(e), access(e).label.toLowerCase());
+    if (e.writes.length) chip.setAttribute("title", "Writes " + e.writes.join(", "));
+    tags.append(chip);
+  }
   for (const d of e.draws.slice(0, 3)) tags.append(el(doc, "span", "pl-tag d", DRAWS[d][0].toLowerCase()));
   if (e.draws.length > 3) tags.append(el(doc, "span", "pl-tag d", `+${e.draws.length - 3} more`));
   if (tags.childNodes.length) c.append(tags);
@@ -375,7 +393,11 @@ export function detail(doc, e) {
   pitch.append(top);
 
   const badges = el(doc, "div", "pl-badges");
-  if (e.scope) badges.append(el(doc, "span", "pl-badge " + tone(e), SCOPE[e.scope].label.toLowerCase()));
+  if (access(e)) {
+    const badge = el(doc, "span", "pl-badge " + tone(e), access(e).label.toLowerCase());
+    if (e.writes.length) badge.setAttribute("title", "Writes " + e.writes.join(", "));
+    badges.append(badge);
+  }
   if (e.draws.length) badges.append(el(doc, "span", "pl-badge", `draws in ${e.draws.length} ${e.draws.length === 1 ? "place" : "places"}`));
   if (e.ref && e.sha256) badges.append(el(doc, "span", "pl-badge s", `pinned ${shortRef(e)}`));
   if (e.verified) badges.append(el(doc, "span", "pl-badge s", "verified"));
@@ -409,6 +431,7 @@ export function detail(doc, e) {
   dl.setAttribute("aria-label", "What is listed");
   fact(doc, dl, "Publisher", e.publisher || "not named");
   if (e.scope) fact(doc, dl, "Scope", SCOPE[e.scope].label.toLowerCase());
+  if (e.writes.length) fact(doc, dl, "Writes", e.writes.join(", "));
   fact(doc, dl, "Draws", e.draws.length ? `${e.draws.length} ${e.draws.length === 1 ? "place" : "places"}` : "nowhere named");
   if (e.repo) fact(doc, dl, "Source", outLink(doc, repoUrl(e), `${e.repo.owner}/${e.repo.name}`));
   fact(doc, dl, "Commit", e.ref ? copyable(doc, e.ref, "commit") : "not pinned");
