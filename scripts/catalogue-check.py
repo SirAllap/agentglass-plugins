@@ -13,7 +13,7 @@ checks that the entry is what that commit holds:
   - a replaced entry keeps its repository (a new version, not a new owner);
   - the ref is a full commit and the hash is a sha256;
   - the commit is on a branch or a tag of that repository, not only a fork's;
-  - the id, the publisher, the scope, the places it draws, the app version it
+  - the id, the publisher, the scope, the files its sandbox writes, the places it draws, the app version it
     needs and the title are what the manifest at that commit makes them;
   - a fresh clone at that commit validates and hashes to the pinned hash;
   - `verified` is false, and the project's name is not a stranger's byline;
@@ -167,6 +167,9 @@ def check(base, head, allow_removal=False):
             problems.append("the publisher is not the manifest's")
         if v.get("scope") != e.get("scope"):
             problems.append(f"the entry says scope {e.get('scope')!r} and the manifest asks for {v.get('scope')!r}")
+        writes = sorted((v.get("sandbox") or {}).get("write") or [])
+        if sorted(e.get("writes") or []) != writes:
+            problems.append(f"the entry says it writes {sorted(e.get('writes') or [])!r} and the manifest's sandbox writes {writes!r}")
         draws = [WORD.get(d, d) for d in v.get("draws") or []]
         if (e.get("draws") or []) != draws:
             problems.append(f"the entry says it draws {e.get('draws')!r} and the manifest declares {draws!r}")
