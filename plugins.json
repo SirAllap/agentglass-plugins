@@ -84,6 +84,31 @@
       ],
       "added": "2026-10-17",
       "preview": "https://raw.githubusercontent.com/SirAllap/agentglass-local-review/23d71e32a1496720153fcd677a4b49d9ed74daaa/preview.png"
+    },
+    {
+      "id": "accounts",
+      "title": "Accounts",
+      "publisher": "agentglass",
+      "verified": false,
+      "scope": "read",
+      "draws": [
+        "accounts",
+        "panel"
+      ],
+      "source": {
+        "kind": "git",
+        "url": "https://github.com/SirAllap/agentglass-accounts",
+        "ref": "451f8ef96e3d18cf7e57a6ab376ccc4d60aae314"
+      },
+      "sha256": "33d44f100557405a1668618a22054198da36e2ba079b8e0fc7ae4b2db1014af3",
+      "description": "Keeps your Claude logins side by side and switches between them from the usage popover, so a second account is one click away instead of a logout and a login. It touches Claude Code's login: it saves each account's tokens in its own slot and replaces the live ones when you switch, so the two login files it asks for are in the permissions in red, on purpose. It refreshes an expired saved token the way Claude Code does and shows each account's usage; it steps aside when Swapkin owns your logins. Needs an agentglass build with the accounts contribution.",
+      "categories": [
+        "accounts",
+        "claude",
+        "usage",
+        "login"
+      ],
+      "added": "2026-10-25"
     }
   ]
 }
