@@ -73,17 +73,17 @@
       "source": {
         "kind": "git",
         "url": "https://github.com/SirAllap/agentglass-local-review",
-        "ref": "23d71e32a1496720153fcd677a4b49d9ed74daaa"
+        "ref": "1f7f00fbdbe4e414d357f267f6e9b8ca6062f241"
       },
-      "sha256": "dd1e6d0131a545449b1f5237b45fbd7707f893f4284cbf71f5470d5d5529b5de",
-      "description": "Reviews your pull requests on this machine with the agent and model you choose, inside a sandbox that cannot write or reach GitHub, and puts the findings in the pull request view. Nothing is posted. This update (commit 23d71e32a1496720153fcd677a4b49d9ed74daaa) makes the label trigger instant through the pr-changed event, polls every 60 s with a forced refresh, shows a visible error when the GitHub login is unknown, and keeps Explain and Re-check as one short call capped at 0.30 USD.",
+      "sha256": "b375fd7f855e857320601484fa2760c55975edc4dff4c0555f519a0a1036e0d6",
+      "description": "Reviews your pull requests on this machine with the agent and model you choose, inside a sandbox that cannot write or reach GitHub, and puts the findings in the pull request view. Nothing is posted. This update (commit 1f7f00fbdbe4e414d357f267f6e9b8ca6062f241) makes the label trigger instant through the pr-changed event, polls every 60 s with a forced refresh, shows a visible error when the GitHub login is unknown, and keeps Explain and Re-check as one short call capped at 0.30 USD.",
       "categories": [
         "review",
         "pull-requests",
         "sandbox"
       ],
       "added": "2026-10-17",
-      "preview": "https://raw.githubusercontent.com/SirAllap/agentglass-local-review/23d71e32a1496720153fcd677a4b49d9ed74daaa/preview.png"
+      "preview": "https://raw.githubusercontent.com/SirAllap/agentglass-local-review/1f7f00fbdbe4e414d357f267f6e9b8ca6062f241/preview.png"
     },
     {
       "id": "accounts",
