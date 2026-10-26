@@ -105,7 +105,7 @@
         "ref": "a4d5819b83383e90c53e2ff3f1474e154b12bf1a"
       },
       "sha256": "0117bc90c2e4460aae2d530ac85e0a274a0bc879b387ee93e53a21a10d3da04b",
-      "description": "Keeps your Claude logins side by side and switches between them from the usage popover, so a second account is one click away instead of a logout and a login. It touches Claude Code's login: it saves each account's tokens in its own slot and replaces the live ones when you switch, so the two login files it asks for are in the permissions in red, on purpose. It refreshes an expired saved token the way Claude Code does and shows each account's usage; it steps aside when Swapkin owns your logins. Needs an agentglass build with the accounts contribution.",
+      "description": "Keeps your Claude logins side by side and switches between them from the usage popover, so a second account is one click away instead of a logout and a login. It touches Claude Code's login: it saves each account's tokens in its own slot and replaces the live ones when you switch, so the two login files it asks for show in red. It refreshes an expired saved token the way Claude Code does and shows each account's usage. Needs a build with the accounts contribution.",
       "categories": [
         "accounts",
         "claude",
