@@ -15,9 +15,9 @@
       "source": {
         "kind": "git",
         "url": "https://github.com/SirAllap/context-diet",
-        "ref": "8470e9cb8d4e602baa636eafa534145c979c6412"
+        "ref": "89e5893dcfb696bedeafed4cb3d95b40607cc87d"
       },
-      "sha256": "3a5c94fac04de4796fc2a3c48abfcfb3267fb2a344f5add30ce25c2cf7472989",
+      "sha256": "bc8f498a981111c7688c3b9f631589dbd0d93797897ac94d1b159a2d442ad512",
       "description": "Almost nothing an agent charges you for is what it writes — it is the conversation so far, read again, on every turn. This ships three workers pinned to the model each job needs (find, build, check) so the reading happens where it is not re-read, and a `read`-scope panel that keeps the tally: not how many turns are large, but how much of all the re-reading those turns carry.\n\nIt is one plugin with two halves — the panel here, and skills and agents in Claude Code — because two different programs ",
       "categories": [
         "agents",
@@ -28,7 +28,7 @@
         "haiku"
       ],
       "added": "2026-09-20",
-      "preview": "https://raw.githubusercontent.com/SirAllap/context-diet/8470e9cb8d4e602baa636eafa534145c979c6412/preview.png"
+      "preview": "https://raw.githubusercontent.com/SirAllap/context-diet/89e5893dcfb696bedeafed4cb3d95b40607cc87d/preview.png"
     },
     {
       "id": "jev-inbox",
