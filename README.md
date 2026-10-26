@@ -70,10 +70,7 @@ landing is. To follow a change on the landing, copy the same rules again;
 `site/test/design.test.mjs` holds the copy to the landing's token values.
 Motion (`site/motion.js`) stops entirely under `prefers-reduced-motion`.
 
-A card's picture is the entry's `preview` at the listed commit. The project's
-own entries can instead wear art the catalogue holds in `site/art/`, drawn
-for the card's width; `ART` in `site/render.js` keys it by id and repository,
-so no other repository's entry can wear it.
+A card's picture is the entry's `preview` at the listed commit, and the app draws the same file. A card image is one visual idea at card size, the same file the site and the app show.
 
 Every field of an entry is text on that page. `site/render.js` is the only
 file that turns an entry into elements and it never writes markup; the page's
